@@ -11,3 +11,7 @@
 - I will implement the business rules and validations, this is the core of the application and should be implemented before any other feature.
 - I will implement the frontend, this is the user interface of the application and should be implemented before any other feature.
 - I will implement the tests, this is the foundation of the application and should be implemented before any other feature.
+
+### PR feat/TDD-setup
+
+- I will create the vitest and playwright setup, this is the foundation of the application and should be implemented before any other feature. I want to use vitest for unit testing and playwright for end-to-end testing. I will also implement a simple CI/CD pipeline using GitHub Actions to run the tests on every push to the main branch. Purpose of the test now is to see what functions are already working properly, and whats the gap in the current implementation.
