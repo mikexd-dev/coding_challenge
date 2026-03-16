@@ -1,119 +1,123 @@
-'use client';
+'use client'
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { CandidateDTO, CandidateStatus, DecisionAction } from '@/contracts/candidate';
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { CandidateDTO, CandidateStatus, DecisionAction } from '@/contracts/candidate'
 
 function LiveSessionContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedId = searchParams.get('candidateId');
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const selectedId = searchParams.get('candidateId')
 
-  const [candidates, setCandidates] = useState<CandidateDTO[]>([]);
-  const [newName, setNewName] = useState('');
-  const [decision, updateDecision] = useState<DecisionAction>('SHORTLIST');
-  const [rsn, setRsn] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<CandidateDTO[]>([])
+  const [newName, setNewName] = useState('')
+  const [decision, updateDecision] = useState<DecisionAction>('SHORTLIST')
+  const [rsn, setRsn] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    fetchCandidates()
+  }, [])
 
   const fetchCandidates = async () => {
     try {
-      const response = await fetch('/api/candidates');
-      const data = await response.json();
-      setCandidates(data);
-    } catch (err) {
-      setError('Error');
+      const response = await fetch('/api/candidates')
+      const data = await response.json()
+      setCandidates(data)
+    } catch (_err) {
+      setError('Error')
     }
-  };
+  }
 
   const handleSelectCandidate = (id: string) => {
-    router.push(`?candidateId=${id}`);
-  };
+    router.push(`?candidateId=${id}`)
+  }
 
   const handleCreateCandidate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
 
     try {
       const response = await fetch('/api/candidates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Error');
-        return;
+        setError(data.error || 'Error')
+        return
       }
 
-      setNewName('');
-      fetchCandidates();
-    } catch (err) {
-      setError('Error');
+      setNewName('')
+      fetchCandidates()
+    } catch (_err) {
+      setError('Error')
     }
-  };
+  }
 
   const handleSubmitDecision = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
 
-    if (!selectedId) return;
+    if (!selectedId) return
 
     try {
       const response = await fetch(`/api/candidates/${selectedId}/decision`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision, reason: rsn }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Error');
-        return;
+        setError(data.error || 'Error')
+        return
       }
 
-      setRsn('');
-      router.push('/live-session');
-      fetchCandidates();
-    } catch (err) {
-      setError('Error');
+      setRsn('')
+      router.push('/live-session')
+      fetchCandidates()
+    } catch (_err) {
+      setError('Error')
     }
-  };
+  }
 
-  const selectedCandidate = candidates.find(c => c.id === selectedId);
+  const selectedCandidate = candidates.find((c) => c.id === selectedId)
 
   const getStatusColor = (status: CandidateStatus) => {
     if (status === 'NEW') {
-      return { bg: '#e3f2fd', color: '#1976d2' };
+      return { bg: '#e3f2fd', color: '#1976d2' }
     }
     if (status === 'SHORTLISTED') {
-      return { bg: '#e8f5e9', color: '#388e3c' };
+      return { bg: '#e8f5e9', color: '#388e3c' }
     }
     if (status === 'REJECTED') {
-      return { bg: '#ffebee', color: '#d32f2f' };
+      return { bg: '#ffebee', color: '#d32f2f' }
     }
-    return { bg: '#e3f2fd', color: '#1976d2' };
-  };
+    return { bg: '#e3f2fd', color: '#1976d2' }
+  }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '20px', fontFamily: 'system-ui' }}>
+    <div
+      style={{ maxWidth: '1200px', margin: '50px auto', padding: '20px', fontFamily: 'system-ui' }}
+    >
       <h1>Candidate Management</h1>
 
       {error && (
-        <div style={{
-          padding: '12px',
-          backgroundColor: '#ffebee',
-          color: '#d32f2f',
-          borderRadius: '4px',
-          marginBottom: '20px',
-          border: '1px solid #ffcdd2'
-        }}>
+        <div
+          style={{
+            padding: '12px',
+            backgroundColor: '#ffebee',
+            color: '#d32f2f',
+            borderRadius: '4px',
+            marginBottom: '20px',
+            border: '1px solid #ffcdd2',
+          }}
+        >
           <strong>Error:</strong> {error}
         </div>
       )}
@@ -121,10 +125,16 @@ function LiveSessionContent() {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
         <div>
           <h2>Candidate Board</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
-            {candidates.map(candidate => {
-              const colors = getStatusColor(candidate.status);
-              const isSelected = candidate.id === selectedId;
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap: '15px',
+            }}
+          >
+            {candidates.map((candidate) => {
+              const colors = getStatusColor(candidate.status)
+              const isSelected = candidate.id === selectedId
               return (
                 <div
                   key={candidate.id}
@@ -138,19 +148,21 @@ function LiveSessionContent() {
                   }}
                 >
                   <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{candidate.name}</div>
-                  <div style={{
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    backgroundColor: colors.bg,
-                    color: colors.color,
-                    fontSize: '12px',
-                    textAlign: 'center',
-                    fontWeight: 'bold'
-                  }}>
+                  <div
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      backgroundColor: colors.bg,
+                      color: colors.color,
+                      fontSize: '12px',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                    }}
+                  >
                     {candidate.status}
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         </div>
@@ -169,7 +181,7 @@ function LiveSessionContent() {
                 fontSize: '16px',
                 borderRadius: '4px',
                 border: '1px solid #ccc',
-                marginBottom: '10px'
+                marginBottom: '10px',
               }}
             />
             <button
@@ -183,7 +195,7 @@ function LiveSessionContent() {
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
             >
               Create
@@ -193,14 +205,20 @@ function LiveSessionContent() {
           {selectedCandidate && (
             <>
               <h2>Update Status</h2>
-              <div style={{
-                padding: '15px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: '8px',
-                marginBottom: '15px'
-              }}>
-                <div><strong>Name:</strong> {selectedCandidate.name}</div>
-                <div><strong>Status:</strong> {selectedCandidate.status}</div>
+              <div
+                style={{
+                  padding: '15px',
+                  backgroundColor: '#f5f5f5',
+                  borderRadius: '8px',
+                  marginBottom: '15px',
+                }}
+              >
+                <div>
+                  <strong>Name:</strong> {selectedCandidate.name}
+                </div>
+                <div>
+                  <strong>Status:</strong> {selectedCandidate.status}
+                </div>
               </div>
 
               <form onSubmit={handleSubmitDecision}>
@@ -216,7 +234,7 @@ function LiveSessionContent() {
                       padding: '10px',
                       fontSize: '16px',
                       borderRadius: '4px',
-                      border: '1px solid #ccc'
+                      border: '1px solid #ccc',
                     }}
                   >
                     <option value="SHORTLIST">Shortlist</option>
@@ -239,7 +257,7 @@ function LiveSessionContent() {
                       fontSize: '16px',
                       borderRadius: '4px',
                       border: '1px solid #ccc',
-                      fontFamily: 'system-ui'
+                      fontFamily: 'system-ui',
                     }}
                   />
                 </div>
@@ -255,7 +273,7 @@ function LiveSessionContent() {
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
                   }}
                 >
                   Submit Decision
@@ -269,14 +287,20 @@ function LiveSessionContent() {
       <div style={{ marginTop: '40px', fontSize: '14px', color: '#666' }}>
         <h3>Business Rules:</h3>
         <ul>
-          <li>{'NEW'} candidates can be {'SHORTLISTED'} or {'REJECTED'}</li>
-          <li>{'SHORTLISTED'} candidates cannot be {'REJECTED'}</li>
-          <li>{'REJECTED'} candidates cannot be {'SHORTLISTED'}</li>
+          <li>
+            {'NEW'} candidates can be {'SHORTLISTED'} or {'REJECTED'}
+          </li>
+          <li>
+            {'SHORTLISTED'} candidates cannot be {'REJECTED'}
+          </li>
+          <li>
+            {'REJECTED'} candidates cannot be {'SHORTLISTED'}
+          </li>
           <li>Reason must be at least {'10'} characters</li>
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
 export default function LiveSession() {
@@ -284,5 +308,5 @@ export default function LiveSession() {
     <Suspense fallback={<div>Loading...</div>}>
       <LiveSessionContent />
     </Suspense>
-  );
+  )
 }

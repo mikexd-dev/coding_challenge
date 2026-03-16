@@ -1,14 +1,14 @@
-import { CandidateDTO, DecisionAction, ErrorResponse, CreateCandidateRequest } from '@/contracts/candidate';
+import { CandidateDTO, DecisionAction, CreateCandidateRequest } from '@/contracts/candidate'
 
 export async function getAllCandidates(): Promise<CandidateDTO[]> {
-  const response = await fetch('/api/candidates');
-  const data = await response.json();
-  
+  const response = await fetch('/api/candidates')
+  const data = await response.json()
+
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to fetch candidates');
+    throw new Error(data.error || 'Failed to fetch candidates')
   }
-  
-  return data;
+
+  return data
 }
 
 export async function createCandidate(name: string): Promise<CandidateDTO> {
@@ -16,15 +16,15 @@ export async function createCandidate(name: string): Promise<CandidateDTO> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name } as CreateCandidateRequest),
-  });
+  })
 
-  const data = await response.json();
+  const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to create candidate');
+    throw new Error(data.error || 'Failed to create candidate')
   }
 
-  return data;
+  return data
 }
 
 export async function submitDecision(
@@ -36,13 +36,13 @@ export async function submitDecision(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ decision, reason }),
-  });
+  })
 
-  const data = await response.json();
+  const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to submit decision');
+    throw new Error(data.error || 'Failed to submit decision')
   }
 
-  return data;
+  return data
 }

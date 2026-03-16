@@ -1,4 +1,4 @@
-import { CandidateStatus, DecisionAction } from '@/contracts/candidate';
+import { CandidateStatus } from '@/contracts/candidate'
 
 export class Candidate {
   constructor(
@@ -8,6 +8,6 @@ export class Candidate {
   ) {}
 
   static create(id: string, name: string, status: CandidateStatus = 'NEW'): Candidate {
-    return new Candidate(id, name, status);
+    return new Candidate(id, name, status)
   }
 }
