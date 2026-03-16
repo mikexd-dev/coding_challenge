@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllCandidates, saveCandidate, generateNextId } from '@/data/storage'
-import { Candidate } from '@/models/candidate'
-import { CandidateDTO, CreateCandidateRequest, ErrorResponse } from '@/contracts/candidate'
+import {
+  getAllCandidates,
+  saveCandidate,
+  generateNextId,
+} from '@/infrastructure/persistence/storage'
+import { Candidate } from '@/domain/models/candidate'
+import { CandidateDTO, CreateCandidateRequest, ErrorResponse } from '@/domain/types/candidate'
 
 export async function GET() {
   try {

@@ -1,4 +1,4 @@
-import { Candidate } from '@/models/candidate'
+import { Candidate } from '@/domain/models/candidate'
 
 const store = new Map<string, Candidate>()
 

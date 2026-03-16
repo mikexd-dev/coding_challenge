@@ -1,4 +1,4 @@
-import { CandidateDTO, DecisionAction, CreateCandidateRequest } from '@/contracts/candidate'
+import { CandidateDTO, DecisionAction, CreateCandidateRequest } from '@/domain/types/candidate'
 
 export async function getAllCandidates(): Promise<CandidateDTO[]> {
   const response = await fetch('/api/candidates')

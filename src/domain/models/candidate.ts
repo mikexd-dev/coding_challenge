@@ -1,4 +1,4 @@
-import { CandidateStatus } from '@/contracts/candidate'
+import { CandidateStatus } from '@/domain/types/candidate'
 
 export class Candidate {
   constructor(

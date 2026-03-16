@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCandidateById, saveCandidate } from '@/data/storage'
-import { CandidateStatus, ErrorResponse, DecisionRequest } from '@/contracts/candidate'
+import { getCandidateById, saveCandidate } from '@/infrastructure/persistence/storage'
+import { CandidateStatus, ErrorResponse, DecisionRequest } from '@/domain/types/candidate'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: candidateId } = await params

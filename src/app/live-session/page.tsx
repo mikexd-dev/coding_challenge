@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CandidateDTO, CandidateStatus, DecisionAction } from '@/contracts/candidate'
+import { CandidateDTO, CandidateStatus, DecisionAction } from '@/domain/types/candidate'
 
 function LiveSessionContent() {
   const router = useRouter()
