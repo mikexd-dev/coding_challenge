@@ -17,6 +17,12 @@ export function saveCandidate(candidate: Candidate): void {
   store.set(candidate.id, candidate)
 }
 
+export function resetStore(): void {
+  store.clear()
+  store.set('c_1', Candidate.create('c_1', 'Alice Johnson', 'NEW'))
+  store.set('c_2', Candidate.create('c_2', 'Bob Williams', 'NEW'))
+}
+
 export function generateNextId(): string {
   const ids = Array.from(store.keys())
   const nums = ids
