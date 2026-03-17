@@ -23,9 +23,11 @@ export function CandidateCard({ candidate, onClick }: CandidateCardProps) {
     <Card
       ref={setNodeRef}
       className={cn(
-        'transition-colors',
+        'transition-all duration-150',
         isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
-        isDragging && 'opacity-40'
+        isDragging
+          ? 'opacity-40'
+          : 'hover:shadow-md hover:ring-1 hover:ring-primary/30 hover:-translate-y-0.5'
       )}
       onClick={() => onClick(candidate.id)}
       size="sm"

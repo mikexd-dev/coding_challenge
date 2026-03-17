@@ -1,17 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   getAllCandidates,
   createCandidate as createCandidateApi,
   submitDecision as submitDecisionApi,
 } from '@/lib/api/candidates'
-import type { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
+import type { DecisionAction } from '@/domain/types/candidate'
 
 const CANDIDATES_KEY = ['candidates'] as const
-
-const DECISION_TO_STATUS: Record<DecisionAction, CandidateDTO['status']> = {
-  SHORTLIST: 'SHORTLISTED',
-  REJECT: 'REJECTED',
-}
 
 export function useCandidates() {
   const queryClient = useQueryClient()
@@ -29,6 +25,10 @@ export function useCandidates() {
     mutationFn: (name: string) => createCandidateApi(name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CANDIDATES_KEY })
+      toast.success('Candidate created successfully')
+    },
+    onError: (err: Error) => {
+      toast.error(err.message)
     },
   })
 
@@ -43,30 +43,15 @@ export function useCandidates() {
       reason: string
     }) => submitDecisionApi(candidateId, decision, reason),
 
-    onMutate: async ({ candidateId, decision }) => {
-      // Cancel in-flight queries
-      await queryClient.cancelQueries({ queryKey: CANDIDATES_KEY })
-
-      // Snapshot current cache
-      const previousCandidates = queryClient.getQueryData<CandidateDTO[]>(CANDIDATES_KEY)
-
-      // Optimistically update cache
-      queryClient.setQueryData<CandidateDTO[]>(CANDIDATES_KEY, (old) =>
-        old?.map((c) => (c.id === candidateId ? { ...c, status: DECISION_TO_STATUS[decision] } : c))
-      )
-
-      return { previousCandidates }
+    onSuccess: () => {
+      toast.success('Decision submitted successfully')
     },
 
-    onError: (_err, _vars, context) => {
-      // Rollback to snapshot
-      if (context?.previousCandidates) {
-        queryClient.setQueryData(CANDIDATES_KEY, context.previousCandidates)
-      }
+    onError: (err: Error) => {
+      toast.error(err.message)
     },
 
     onSettled: () => {
-      // Re-sync with server
       queryClient.invalidateQueries({ queryKey: CANDIDATES_KEY })
     },
   })

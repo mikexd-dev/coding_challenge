@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, Suspense } from 'react'
+import { useRef, startTransition, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useQueryClient } from '@tanstack/react-query'
-import type { DecisionAction } from '@/domain/types/candidate'
+import type { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
 import { useCandidates } from '@/hooks/use-candidates'
+import { useOptimisticCandidates } from '@/hooks/use-optimistic-candidates'
 import { useCandidateSheet } from '@/hooks/use-candidate-sheet'
 import { CandidateBoard } from '@/components/candidate-board'
 import { CreateCandidateForm } from '@/components/create-candidate-form'
@@ -30,8 +31,14 @@ function ErrorFallback({
   )
 }
 
+const DECISION_TO_STATUS: Record<DecisionAction, CandidateDTO['status']> = {
+  SHORTLIST: 'SHORTLISTED',
+  REJECT: 'REJECTED',
+}
+
 function LiveSessionContent() {
   const { candidates, isLoading, error, createCandidate, submitDecision } = useCandidates()
+  const [optimisticCandidates, addOptimistic] = useOptimisticCandidates(candidates)
   const { sheetState, openFromClick, openFromDrop, close } = useCandidateSheet()
   const sheetTriggerRef = useRef<HTMLElement | null>(null)
 
@@ -41,7 +48,17 @@ function LiveSessionContent() {
   }
 
   const handleCreateCandidate = (name: string) => {
-    createCandidate.mutate(name)
+    const tempCandidate: CandidateDTO = {
+      id: `temp-${Date.now()}`,
+      name,
+      status: 'NEW',
+      reason: null,
+      decisionDate: null,
+    }
+    startTransition(() => {
+      addOptimistic({ type: 'add', candidate: tempCandidate })
+      createCandidate.mutate(name)
+    })
   }
 
   const handleDrop = (candidateId: string, decision: DecisionAction) => {
@@ -52,7 +69,6 @@ function LiveSessionContent() {
   const handleSheetOpenChange = (open: boolean) => {
     if (!open) {
       close()
-      // Restore focus to the element that triggered the sheet
       requestAnimationFrame(() => {
         sheetTriggerRef.current?.focus()
         sheetTriggerRef.current = null
@@ -61,30 +77,38 @@ function LiveSessionContent() {
   }
 
   const handleSubmitDecision = (decision: DecisionAction, reason: string) => {
-    if (!sheetState.candidateId) return
+    const candidateId = sheetState.candidateId
+    if (!candidateId) return
     close()
-    submitDecision.mutate({ candidateId: sheetState.candidateId, decision, reason })
-    // Restore focus after submission
+    startTransition(() => {
+      addOptimistic({
+        type: 'update',
+        id: candidateId,
+        status: DECISION_TO_STATUS[decision],
+        reason,
+        decisionDate: new Date().toISOString(),
+      })
+      submitDecision.mutate({ candidateId, decision, reason })
+    })
     requestAnimationFrame(() => {
       sheetTriggerRef.current?.focus()
       sheetTriggerRef.current = null
     })
   }
 
-  const selectedCandidate = candidates.find((c) => c.id === sheetState.candidateId) ?? null
-  const displayError =
-    error?.message || createCandidate.error?.message || submitDecision.error?.message
+  const selectedCandidate =
+    optimisticCandidates.find((c) => c.id === sheetState.candidateId) ?? null
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12 pb-36 font-sans">
       <h1 className="text-2xl font-bold mb-6">Candidate Management</h1>
 
-      {displayError && (
+      {error && (
         <div
           role="alert"
           className="mb-6 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          <strong>Error:</strong> {displayError}
+          <strong>Error:</strong> {error.message}
         </div>
       )}
 
@@ -96,7 +120,7 @@ function LiveSessionContent() {
       <div>
         <h2 className="text-lg font-semibold mb-4">Candidate Board</h2>
         <CandidateBoard
-          candidates={candidates}
+          candidates={optimisticCandidates}
           onCardClick={handleCardClick}
           onDrop={handleDrop}
           loading={isLoading}

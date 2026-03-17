@@ -27,6 +27,7 @@ export function KanbanColumn({ status, count, children }: KanbanColumnProps) {
     <div
       ref={setNodeRef}
       role="group"
+      data-status={status}
       aria-label={`${status} candidates, ${count} ${count === 1 ? 'candidate' : 'candidates'}`}
       className={cn(
         'flex flex-col rounded-lg border-2 bg-muted/30 p-3 min-h-[200px] transition-colors',

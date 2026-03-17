@@ -99,9 +99,25 @@ export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: Updat
         </form>
       ) : (
         <Card size="sm">
-          <CardContent className="text-center text-muted-foreground">
-            This candidate has already been{' '}
-            {candidate.status === 'SHORTLISTED' ? 'shortlisted' : 'rejected'}.
+          <CardContent className="space-y-3">
+            <p className="text-center text-muted-foreground">
+              This candidate has already been{' '}
+              {candidate.status === 'SHORTLISTED' ? 'shortlisted' : 'rejected'}.
+            </p>
+            {candidate.reason && (
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">Reason</span>
+                <p className="text-sm mt-1">{candidate.reason}</p>
+              </div>
+            )}
+            {candidate.decisionDate && (
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">Decision Date</span>
+                <p className="text-sm mt-1">
+                  {new Date(candidate.decisionDate).toLocaleDateString()}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

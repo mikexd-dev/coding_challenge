@@ -121,7 +121,7 @@ describe('LiveSession Page', () => {
     await user.click(screen.getByText('Create'))
 
     await waitFor(() => {
-      expect(screen.getByText(/Something went wrong/)).toBeInTheDocument()
+      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument()
     })
   })
 
