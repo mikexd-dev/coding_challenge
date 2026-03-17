@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LiveSession from '@/app/live-session/page'
+import { renderWithProviders } from '@/__tests__/test-utils'
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -36,7 +37,7 @@ describe('LiveSession Page', () => {
   it('renders candidate list from API', async () => {
     global.fetch = mockFetch([{ ok: true, data: mockCandidates }])
 
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice Johnson')).toBeInTheDocument()
@@ -48,13 +49,12 @@ describe('LiveSession Page', () => {
   it('renders three Kanban columns with status headers', async () => {
     global.fetch = mockFetch([{ ok: true, data: mockCandidates }])
 
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice Johnson')).toBeInTheDocument()
     })
 
-    // Column headers show status names
     const newHeaders = screen.getAllByText('NEW')
     expect(newHeaders.length).toBeGreaterThanOrEqual(1)
 
@@ -68,7 +68,7 @@ describe('LiveSession Page', () => {
   it('groups candidates into correct columns', async () => {
     global.fetch = mockFetch([{ ok: true, data: mockCandidates }])
 
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice Johnson')).toBeInTheDocument()
@@ -88,7 +88,7 @@ describe('LiveSession Page', () => {
       },
     ])
 
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice Johnson')).toBeInTheDocument()
@@ -110,7 +110,7 @@ describe('LiveSession Page', () => {
     ])
 
     const user = userEvent.setup()
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice Johnson')).toBeInTheDocument()
@@ -129,13 +129,12 @@ describe('LiveSession Page', () => {
     const user = userEvent.setup()
     global.fetch = mockFetch([{ ok: true, data: mockCandidates }])
 
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Bob Williams')).toBeInTheDocument()
     })
 
-    // Click a SHORTLISTED card (not draggable, so click fires normally)
     await user.click(screen.getByText('Bob Williams'))
 
     await waitFor(() => {
@@ -147,13 +146,12 @@ describe('LiveSession Page', () => {
   it('shows non-draggable candidates without drag cursor', async () => {
     global.fetch = mockFetch([{ ok: true, data: mockCandidates }])
 
-    render(<LiveSession />)
+    renderWithProviders(<LiveSession />)
 
     await waitFor(() => {
       expect(screen.getByText('Bob Williams')).toBeInTheDocument()
     })
 
-    // SHORTLISTED and REJECTED cards should not have draggable attributes
     const bobCard = screen.getByText('Bob Williams').closest('[data-slot="card"]')
     expect(bobCard).not.toHaveAttribute('aria-roledescription', 'draggable')
   })

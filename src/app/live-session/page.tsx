@@ -1,91 +1,64 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
-import { getAllCandidates, createCandidate, submitDecision } from '@/lib/api/candidates'
+import { Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
+import { useQueryClient } from '@tanstack/react-query'
+import type { DecisionAction } from '@/domain/types/candidate'
+import { useCandidates } from '@/hooks/use-candidates'
+import { useCandidateSheet } from '@/hooks/use-candidate-sheet'
 import { CandidateBoard } from '@/components/candidate-board'
 import { CreateCandidateForm } from '@/components/create-candidate-form'
 import { CandidateSheet } from '@/components/candidate-sheet'
 import { BusinessRules } from '@/components/business-rules'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
-interface SheetState {
-  open: boolean
-  candidateId: string | null
-  prefilledDecision: DecisionAction | null
+function ErrorFallback({
+  error,
+  resetErrorBoundary,
+}: {
+  error: unknown
+  resetErrorBoundary: () => void
+}) {
+  const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-12 text-center">
+      <h2 className="text-xl font-bold mb-4">Something went wrong</h2>
+      <p className="text-muted-foreground mb-6">{message}</p>
+      <Button onClick={resetErrorBoundary}>Try again</Button>
+    </div>
+  )
 }
 
 function LiveSessionContent() {
-  const [candidates, setCandidates] = useState<CandidateDTO[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [sheetState, setSheetState] = useState<SheetState>({
-    open: false,
-    candidateId: null,
-    prefilledDecision: null,
-  })
+  const { candidates, isLoading, error, createCandidate, submitDecision } = useCandidates()
+  const { sheetState, openFromClick, openFromDrop, close } = useCandidateSheet()
 
-  useEffect(() => {
-    fetchCandidates()
-  }, [])
-
-  const fetchCandidates = async () => {
-    try {
-      setLoading(true)
-      const data = await getAllCandidates()
-      setCandidates(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleCardClick = (id: string) => {
-    setSheetState({ open: true, candidateId: id, prefilledDecision: null })
+  const handleCreateCandidate = (name: string) => {
+    createCandidate.mutate(name)
   }
 
   const handleDrop = (candidateId: string, decision: DecisionAction) => {
-    setSheetState({ open: true, candidateId, prefilledDecision: decision })
+    openFromDrop(candidateId, decision)
   }
 
-  const handleSheetOpenChange = (open: boolean) => {
-    if (!open) {
-      setSheetState({ open: false, candidateId: null, prefilledDecision: null })
-    }
-  }
-
-  const handleCreateCandidate = async (name: string) => {
-    setError(null)
-    try {
-      await createCandidate(name)
-      fetchCandidates()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error')
-    }
-  }
-
-  const handleSubmitDecision = async (decision: DecisionAction, reason: string) => {
-    setError(null)
+  const handleSubmitDecision = (decision: DecisionAction, reason: string) => {
     if (!sheetState.candidateId) return
-    try {
-      await submitDecision(sheetState.candidateId, decision, reason)
-      setSheetState({ open: false, candidateId: null, prefilledDecision: null })
-      fetchCandidates()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error')
-    }
+    close()
+    submitDecision.mutate({ candidateId: sheetState.candidateId, decision, reason })
   }
 
   const selectedCandidate = candidates.find((c) => c.id === sheetState.candidateId) ?? null
+  const displayError =
+    error?.message || createCandidate.error?.message || submitDecision.error?.message
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12 pb-36 font-sans">
       <h1 className="text-2xl font-bold mb-6">Candidate Management</h1>
 
-      {error && (
+      {displayError && (
         <div className="mb-6 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <strong>Error:</strong> {error}
+          <strong>Error:</strong> {displayError}
         </div>
       )}
 
@@ -98,15 +71,17 @@ function LiveSessionContent() {
         <h2 className="text-lg font-semibold mb-4">Candidate Board</h2>
         <CandidateBoard
           candidates={candidates}
-          onCardClick={handleCardClick}
+          onCardClick={openFromClick}
           onDrop={handleDrop}
-          loading={loading}
+          loading={isLoading}
         />
       </div>
 
       <CandidateSheet
         open={sheetState.open}
-        onOpenChange={handleSheetOpenChange}
+        onOpenChange={(open) => {
+          if (!open) close()
+        }}
         candidate={selectedCandidate}
         prefilledDecision={sheetState.prefilledDecision}
         onSubmit={handleSubmitDecision}
@@ -122,16 +97,23 @@ function LiveSessionContent() {
 }
 
 export default function LiveSession() {
+  const queryClient = useQueryClient()
+
   return (
-    <Suspense
-      fallback={
-        <div className="mx-auto max-w-6xl px-6 py-12">
-          <Skeleton className="h-8 w-64 mb-6" />
-          <Skeleton className="h-48" />
-        </div>
-      }
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => queryClient.invalidateQueries()}
     >
-      <LiveSessionContent />
-    </Suspense>
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-6xl px-6 py-12">
+            <Skeleton className="h-8 w-64 mb-6" />
+            <Skeleton className="h-48" />
+          </div>
+        }
+      >
+        <LiveSessionContent />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

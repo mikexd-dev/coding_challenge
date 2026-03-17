@@ -12,6 +12,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import type { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
 import { isValidReason, canTransition, MIN_REASON_LENGTH } from '@/domain/validation'
+import { useFieldValidation } from '@/hooks/use-field-validation'
 import { StatusBadge } from './status-badge'
 
 interface UpdateStatusFormProps {
@@ -22,29 +23,19 @@ interface UpdateStatusFormProps {
 
 export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: UpdateStatusFormProps) {
   const [decision, setDecision] = useState<DecisionAction>(defaultDecision ?? 'SHORTLIST')
-  const [reason, setReason] = useState('')
-  const [reasonError, setReasonError] = useState<string | null>(null)
-
-  const isValid = isValidReason(reason)
-
-  const handleReasonChange = (value: string) => {
-    setReason(value)
-    if (!isValidReason(value)) {
-      setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
-    } else {
-      setReasonError(null)
-    }
-  }
+  const {
+    value: reason,
+    error: reasonError,
+    isValid,
+    handleChange: handleReasonChange,
+    reset: resetReason,
+  } = useFieldValidation(isValidReason, `Reason must be at least ${MIN_REASON_LENGTH} characters`)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValidReason(reason)) {
-      setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
-      return
-    }
+    if (!isValid) return
     onSubmit(decision, reason)
-    setReason('')
-    setReasonError(null)
+    resetReason()
   }
 
   return (
