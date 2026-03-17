@@ -58,9 +58,7 @@ export class NeonCandidateRepository implements CandidateRepository {
 
   async nextId(): Promise<string> {
     const db = getDb()
-    const result = await db
-      .select({ maxId: sql<string>`max(id)` })
-      .from(candidates)
+    const result = await db.select({ maxId: sql<string>`max(id)` }).from(candidates)
     const maxId = result[0]?.maxId
     if (!maxId) return 'c_1'
     const num = parseInt(maxId.split('_')[1] ?? '0')

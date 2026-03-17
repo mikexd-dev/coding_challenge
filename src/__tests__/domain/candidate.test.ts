@@ -22,7 +22,13 @@ describe('Candidate Domain Model', () => {
 
     it('rehydrates with reason and decisionDate', () => {
       const date = new Date('2025-01-15T10:00:00Z')
-      const candidate = Candidate.create('c_1', 'Alice', 'SHORTLISTED', 'Great fit for the role', date)
+      const candidate = Candidate.create(
+        'c_1',
+        'Alice',
+        'SHORTLISTED',
+        'Great fit for the role',
+        date
+      )
       expect(candidate.status).toBe('SHORTLISTED')
       expect(candidate.reason).toBe('Great fit for the role')
       expect(candidate.decisionDate).toEqual(date)

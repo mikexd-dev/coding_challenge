@@ -8,9 +8,7 @@ describe.skipIf(!hasDb)('NeonCandidateRepository', () => {
   let repo: any
 
   beforeEach(async () => {
-    const { NeonCandidateRepository } = await import(
-      '@/infrastructure/persistence/neon-repository'
-    )
+    const { NeonCandidateRepository } = await import('@/infrastructure/persistence/neon-repository')
     repo = new NeonCandidateRepository()
     await repo.reset()
   })
