@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test'
 
 test.beforeEach(async ({ request }) => {
-  await request.post('/api/candidates/reset')
+  const res = await request.post('/api/candidates/reset')
+  expect(res.ok()).toBeTruthy()
 })
 
 /** Wait for the sheet to open and the decision form to be ready */

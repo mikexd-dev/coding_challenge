@@ -28,6 +28,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       DATABASE_URL: '',
+      CI: process.env.CI ?? '',
     },
   },
 })
