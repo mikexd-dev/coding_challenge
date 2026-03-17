@@ -10,12 +10,14 @@ import { ValidationError } from '@/domain/errors'
 
 export async function GET() {
   try {
-    const candidates = getAllCandidates()
+    const candidates = await getAllCandidates()
 
     const response: CandidateDTO[] = candidates.map((c) => ({
       id: c.id,
       name: c.name,
       status: c.status,
+      reason: c.reason,
+      decisionDate: c.decisionDate?.toISOString() ?? null,
     }))
 
     return NextResponse.json(response)
@@ -29,14 +31,16 @@ export async function POST(request: NextRequest) {
     const body: CreateCandidateRequest = await request.json()
     const name = body.name
 
-    const id = generateNextId()
+    const id = await generateNextId()
     const candidate = Candidate.create(id, name)
-    saveCandidate(candidate)
+    await saveCandidate(candidate)
 
-    const response = {
+    const response: CandidateDTO = {
       id: candidate.id,
       name: candidate.name,
       status: candidate.status,
+      reason: candidate.reason,
+      decisionDate: candidate.decisionDate?.toISOString() ?? null,
     }
 
     return NextResponse.json(response, { status: 201 })

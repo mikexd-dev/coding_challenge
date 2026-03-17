@@ -19,8 +19,8 @@ function createDecisionRequest(candidateId: string, body: Record<string, unknown
 }
 
 describe('Candidates API', () => {
-  beforeEach(() => {
-    resetStore()
+  beforeEach(async () => {
+    await resetStore()
   })
 
   describe('GET /api/candidates', () => {
@@ -31,6 +31,14 @@ describe('Candidates API', () => {
       expect(response.status).toBe(200)
       expect(data).toHaveLength(2)
       expect(data[0]).toMatchObject({ id: 'c_1', name: 'Alice Johnson', status: 'NEW' })
+    })
+
+    it('includes reason and decisionDate as null for NEW candidates', async () => {
+      const response = await GET()
+      const data = await response.json()
+
+      expect(data[0].reason).toBeNull()
+      expect(data[0].decisionDate).toBeNull()
     })
   })
 
@@ -43,6 +51,8 @@ describe('Candidates API', () => {
       expect(response.status).toBe(201)
       expect(data).toMatchObject({ name: 'Charlie Brown', status: 'NEW' })
       expect(data.id).toBeDefined()
+      expect(data.reason).toBeNull()
+      expect(data.decisionDate).toBeNull()
     })
 
     it('rejects empty name with 400', async () => {
@@ -63,6 +73,8 @@ describe('Candidates API', () => {
 
       expect(response.status).toBe(200)
       expect(data.status).toBe('SHORTLISTED')
+      expect(data.reason).toBe('Good candidate for role')
+      expect(data.decisionDate).toBeDefined()
     })
 
     it('rejects a NEW candidate', async () => {
@@ -75,6 +87,8 @@ describe('Candidates API', () => {
 
       expect(response.status).toBe(200)
       expect(data.status).toBe('REJECTED')
+      expect(data.reason).toBe('Not enough experience')
+      expect(data.decisionDate).toBeDefined()
     })
 
     it('returns 404 for missing candidate', async () => {
@@ -100,14 +114,12 @@ describe('Candidates API', () => {
     })
 
     it('prevents shortlisting a REJECTED candidate (409)', async () => {
-      // First reject the candidate
       const { request: rejectReq, context: rejectCtx } = createDecisionRequest('c_1', {
         decision: 'REJECT',
         reason: 'Not enough experience',
       })
       await postDecision(rejectReq, rejectCtx)
 
-      // Then try to shortlist
       const { request, context } = createDecisionRequest('c_1', {
         decision: 'SHORTLIST',
         reason: 'Actually reconsidered this',
@@ -117,14 +129,12 @@ describe('Candidates API', () => {
     })
 
     it('prevents rejecting a SHORTLISTED candidate (409)', async () => {
-      // First shortlist the candidate
       const { request: shortlistReq, context: shortlistCtx } = createDecisionRequest('c_1', {
         decision: 'SHORTLIST',
         reason: 'Good candidate for role',
       })
       await postDecision(shortlistReq, shortlistCtx)
 
-      // Then try to reject
       const { request, context } = createDecisionRequest('c_1', {
         decision: 'REJECT',
         reason: 'Changed mind about this',
