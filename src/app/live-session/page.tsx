@@ -37,6 +37,7 @@ const DECISION_TO_STATUS: Record<DecisionAction, CandidateDTO['status']> = {
 }
 
 function LiveSessionContent() {
+  const queryClient = useQueryClient()
   const { candidates, isLoading, error, createCandidate, submitDecision } = useCandidates()
   const [optimisticCandidates, addOptimistic] = useOptimisticCandidates(candidates)
   const { sheetState, openFromClick, openFromDrop, close } = useCandidateSheet()
@@ -55,9 +56,10 @@ function LiveSessionContent() {
       reason: null,
       decisionDate: null,
     }
-    startTransition(() => {
+    startTransition(async () => {
       addOptimistic({ type: 'add', candidate: tempCandidate })
-      createCandidate.mutate(name)
+      await createCandidate.mutateAsync(name).catch(() => {})
+      await queryClient.invalidateQueries({ queryKey: ['candidates'] })
     })
   }
 
@@ -80,7 +82,7 @@ function LiveSessionContent() {
     const candidateId = sheetState.candidateId
     if (!candidateId) return
     close()
-    startTransition(() => {
+    startTransition(async () => {
       addOptimistic({
         type: 'update',
         id: candidateId,
@@ -88,7 +90,8 @@ function LiveSessionContent() {
         reason,
         decisionDate: new Date().toISOString(),
       })
-      submitDecision.mutate({ candidateId, decision, reason })
+      await submitDecision.mutateAsync({ candidateId, decision, reason }).catch(() => {})
+      await queryClient.invalidateQueries({ queryKey: ['candidates'] })
     })
     requestAnimationFrame(() => {
       sheetTriggerRef.current?.focus()

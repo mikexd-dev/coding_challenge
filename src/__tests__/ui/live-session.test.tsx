@@ -107,6 +107,7 @@ describe('LiveSession Page', () => {
     global.fetch = mockFetch([
       { ok: true, data: mockCandidates },
       { ok: false, data: { error: 'Something went wrong' } },
+      { ok: true, data: mockCandidates },
     ])
 
     const user = userEvent.setup()

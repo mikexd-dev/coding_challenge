@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   getAllCandidates,
@@ -10,8 +10,6 @@ import type { DecisionAction } from '@/domain/types/candidate'
 const CANDIDATES_KEY = ['candidates'] as const
 
 export function useCandidates() {
-  const queryClient = useQueryClient()
-
   const {
     data: candidates = [],
     isLoading,
@@ -24,7 +22,6 @@ export function useCandidates() {
   const createCandidate = useMutation({
     mutationFn: (name: string) => createCandidateApi(name),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CANDIDATES_KEY })
       toast.success('Candidate created successfully')
     },
     onError: (err: Error) => {
@@ -49,10 +46,6 @@ export function useCandidates() {
 
     onError: (err: Error) => {
       toast.error(err.message)
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: CANDIDATES_KEY })
     },
   })
 
