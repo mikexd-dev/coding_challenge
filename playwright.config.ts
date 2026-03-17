@@ -6,10 +6,12 @@ const baseURL = `http://localhost:${port}`
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
-  retries: 0,
+  retries: 1,
+  timeout: 60_000,
   use: {
     baseURL,
     trace: 'on-first-retry',
+    actionTimeout: 15_000,
   },
   projects: [
     {

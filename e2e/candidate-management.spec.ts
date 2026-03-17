@@ -4,6 +4,39 @@ test.beforeEach(async ({ request }) => {
   await request.post('/api/candidates/reset')
 })
 
+/** Wait for the sheet to open and the decision form to be ready */
+async function waitForDecisionForm(page: import('@playwright/test').Page) {
+  const sheet = page.locator('[data-slot="sheet-content"]')
+  await expect(sheet).toBeVisible()
+  const combobox = page.getByRole('combobox')
+  await expect(combobox).toBeVisible()
+  return { sheet, combobox }
+}
+
+/** Wait for the sheet to open (for any candidate, including terminal states) */
+async function waitForSheet(page: import('@playwright/test').Page) {
+  const sheet = page.locator('[data-slot="sheet-content"]')
+  await expect(sheet).toBeVisible()
+  return sheet
+}
+
+/** Submit a decision for a candidate */
+async function submitDecision(
+  page: import('@playwright/test').Page,
+  candidateName: string,
+  decision: 'Shortlist' | 'Reject',
+  reason: string
+) {
+  await page.getByText(candidateName).click()
+  const { combobox } = await waitForDecisionForm(page)
+  await combobox.click()
+  await page.getByRole('option', { name: decision }).click()
+  await page.getByLabel(/reason/i).fill(reason)
+  await page.getByRole('button', { name: 'Submit Decision' }).click()
+  // Wait for sheet to close
+  await expect(page.locator('[data-slot="sheet-content"]')).not.toBeVisible()
+}
+
 test.describe('Candidate Management', () => {
   test('page loads with seeded candidates in NEW column', async ({ page }) => {
     await page.goto('/live-session')
@@ -27,20 +60,13 @@ test.describe('Candidate Management', () => {
   test('shortlist a candidate with valid reason', async ({ page }) => {
     await page.goto('/live-session')
 
-    // Click on Alice's card to open the sheet
-    await page.getByText('Alice Johnson').click()
+    await submitDecision(
+      page,
+      'Alice Johnson',
+      'Shortlist',
+      'Excellent qualifications and experience'
+    )
 
-    // Sheet should open — select SHORTLIST decision
-    await page.getByRole('combobox', { name: /decision/i }).click()
-    await page.getByRole('option', { name: 'Shortlist' }).click()
-
-    // Enter a valid reason (>=10 chars)
-    await page.getByLabel(/reason/i).fill('Excellent qualifications and experience')
-
-    // Submit
-    await page.getByRole('button', { name: 'Submit Decision' }).click()
-
-    // Card should move to SHORTLISTED column
     const shortlistedColumn = page.locator('[data-status="SHORTLISTED"]')
     await expect(shortlistedColumn.getByText('Alice Johnson')).toBeVisible()
   })
@@ -48,14 +74,12 @@ test.describe('Candidate Management', () => {
   test('reject a candidate with valid reason', async ({ page }) => {
     await page.goto('/live-session')
 
-    await page.getByText('Bob Williams').click()
-
-    await page.getByRole('combobox', { name: /decision/i }).click()
-    await page.getByRole('option', { name: 'Reject' }).click()
-
-    await page.getByLabel(/reason/i).fill('Does not meet minimum requirements for the role')
-
-    await page.getByRole('button', { name: 'Submit Decision' }).click()
+    await submitDecision(
+      page,
+      'Bob Williams',
+      'Reject',
+      'Does not meet minimum requirements for the role'
+    )
 
     const rejectedColumn = page.locator('[data-status="REJECTED"]')
     await expect(rejectedColumn.getByText('Bob Williams')).toBeVisible()
@@ -65,20 +89,22 @@ test.describe('Candidate Management', () => {
     await page.goto('/live-session')
 
     // First reject Alice
-    await page.getByText('Alice Johnson').click()
-    await page.getByRole('combobox', { name: /decision/i }).click()
-    await page.getByRole('option', { name: 'Reject' }).click()
-    await page.getByLabel(/reason/i).fill('Does not meet the requirements for this position')
-    await page.getByRole('button', { name: 'Submit Decision' }).click()
+    await submitDecision(
+      page,
+      'Alice Johnson',
+      'Reject',
+      'Does not meet the requirements for this position'
+    )
 
-    // Wait for sheet to close and card to move
+    // Wait for card to move
     await expect(page.locator('[data-status="REJECTED"]').getByText('Alice Johnson')).toBeVisible()
 
     // Click on the now-rejected Alice
     await page.locator('[data-status="REJECTED"]').getByText('Alice Johnson').click()
+    const sheet = await waitForSheet(page)
 
     // Decision form should NOT be shown — instead see "already been rejected" message
-    await expect(page.getByText(/already been rejected/i)).toBeVisible()
+    await expect(sheet.getByText(/already been rejected/i)).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit Decision' })).not.toBeVisible()
   })
 
@@ -86,11 +112,12 @@ test.describe('Candidate Management', () => {
     await page.goto('/live-session')
 
     // Shortlist Bob
-    await page.getByText('Bob Williams').click()
-    await page.getByRole('combobox', { name: /decision/i }).click()
-    await page.getByRole('option', { name: 'Shortlist' }).click()
-    await page.getByLabel(/reason/i).fill('Strong technical skills and great culture fit')
-    await page.getByRole('button', { name: 'Submit Decision' }).click()
+    await submitDecision(
+      page,
+      'Bob Williams',
+      'Shortlist',
+      'Strong technical skills and great culture fit'
+    )
 
     await expect(
       page.locator('[data-status="SHORTLISTED"]').getByText('Bob Williams')
@@ -98,8 +125,9 @@ test.describe('Candidate Management', () => {
 
     // Click on the now-shortlisted Bob
     await page.locator('[data-status="SHORTLISTED"]').getByText('Bob Williams').click()
+    const sheet = await waitForSheet(page)
 
-    await expect(page.getByText(/already been shortlisted/i)).toBeVisible()
+    await expect(sheet.getByText(/already been shortlisted/i)).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit Decision' })).not.toBeVisible()
   })
 
@@ -107,8 +135,7 @@ test.describe('Candidate Management', () => {
     await page.goto('/live-session')
 
     await page.getByText('Alice Johnson').click()
-
-    const sheet = page.getByLabel('Candidate Details')
+    const sheet = await waitForSheet(page)
 
     // Type a short reason and blur to trigger validation
     const reasonField = sheet.getByLabel(/reason/i)
