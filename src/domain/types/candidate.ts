@@ -6,6 +6,8 @@ export interface CandidateDTO {
   id: string
   name: string
   status: CandidateStatus
+  reason: string | null
+  decisionDate: string | null
 }
 
 export interface CreateCandidateRequest {

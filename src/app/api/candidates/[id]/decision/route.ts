@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCandidateById, saveCandidate } from '@/infrastructure/persistence/storage'
-import { ErrorResponse, DecisionRequest } from '@/domain/types/candidate'
+import { CandidateDTO, ErrorResponse, DecisionRequest } from '@/domain/types/candidate'
 import { ValidationError, InvalidTransitionError } from '@/domain/errors'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Invalid reason' } as ErrorResponse, { status: 400 })
     }
 
-    const candidate = getCandidateById(candidateId)
+    const candidate = await getCandidateById(candidateId)
 
     if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' } as ErrorResponse, { status: 404 })
@@ -29,12 +29,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Invalid decision' } as ErrorResponse, { status: 400 })
     }
 
-    saveCandidate(candidate)
+    await saveCandidate(candidate)
 
-    const response = {
+    const response: CandidateDTO = {
       id: candidate.id,
       name: candidate.name,
       status: candidate.status,
+      reason: candidate.reason,
+      decisionDate: candidate.decisionDate?.toISOString() ?? null,
     }
 
     return NextResponse.json(response, { status: 200 })

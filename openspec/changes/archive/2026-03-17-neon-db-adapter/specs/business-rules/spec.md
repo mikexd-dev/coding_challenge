@@ -30,6 +30,8 @@ The system SHALL reject transition attempts when the reason is shorter than 10 c
 - **WHEN** `candidate.shortlist('1234567890')` is called on a `NEW` candidate
 - **THEN** the transition succeeds and `reason` is `'1234567890'` and `decisionDate` is set
 
+## ADDED Requirements
+
 ### Requirement: Decision stores reason and date
 The system SHALL store the `reason` string and a `decisionDate` timestamp on the `Candidate` model when `shortlist()` or `reject()` is called. New candidates SHALL have `reason: null` and `decisionDate: null`.
 
