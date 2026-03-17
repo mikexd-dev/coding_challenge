@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CandidateDTO, CandidateStatus, DecisionAction } from '@/domain/types/candidate'
+import { getAllCandidates, createCandidate, submitDecision } from '@/ui/api/candidates'
+import { isValidName, isValidReason, canTransition, MIN_REASON_LENGTH } from '@/domain/validation'
 
 function LiveSessionContent() {
   const router = useRouter()
@@ -14,6 +16,8 @@ function LiveSessionContent() {
   const [decision, updateDecision] = useState<DecisionAction>('SHORTLIST')
   const [rsn, setRsn] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [reasonError, setReasonError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchCandidates()
@@ -21,11 +25,10 @@ function LiveSessionContent() {
 
   const fetchCandidates = async () => {
     try {
-      const response = await fetch('/api/candidates')
-      const data = await response.json()
+      const data = await getAllCandidates()
       setCandidates(data)
-    } catch (_err) {
-      setError('Error')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error')
     }
   }
 
@@ -33,28 +36,40 @@ function LiveSessionContent() {
     router.push(`?candidateId=${id}`)
   }
 
+  const handleNameChange = (value: string) => {
+    setNewName(value)
+    if (!isValidName(value)) {
+      setNameError('Name cannot be empty or whitespace only')
+    } else {
+      setNameError(null)
+    }
+  }
+
+  const handleReasonChange = (value: string) => {
+    setRsn(value)
+    if (!isValidReason(value)) {
+      setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
+    } else {
+      setReasonError(null)
+    }
+  }
+
   const handleCreateCandidate = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
+    if (!isValidName(newName)) {
+      setNameError('Name cannot be empty or whitespace only')
+      return
+    }
+
     try {
-      const response = await fetch('/api/candidates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Error')
-        return
-      }
-
+      await createCandidate(newName)
       setNewName('')
+      setNameError(null)
       fetchCandidates()
-    } catch (_err) {
-      setError('Error')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error')
     }
   }
 
@@ -64,25 +79,19 @@ function LiveSessionContent() {
 
     if (!selectedId) return
 
+    if (!isValidReason(rsn)) {
+      setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
+      return
+    }
+
     try {
-      const response = await fetch(`/api/candidates/${selectedId}/decision`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, reason: rsn }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Error')
-        return
-      }
-
+      await submitDecision(selectedId, decision, rsn)
       setRsn('')
+      setReasonError(null)
       router.push('/live-session')
       fetchCandidates()
-    } catch (_err) {
-      setError('Error')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error')
     }
   }
 
@@ -100,6 +109,9 @@ function LiveSessionContent() {
     }
     return { bg: '#e3f2fd', color: '#1976d2' }
   }
+
+  const isNameValid = isValidName(newName)
+  const isReasonValid = isValidReason(rsn)
 
   return (
     <div
@@ -173,29 +185,35 @@ function LiveSessionContent() {
             <input
               type="text"
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Candidate name"
               style={{
                 width: '100%',
                 padding: '10px',
                 fontSize: '16px',
                 borderRadius: '4px',
-                border: '1px solid #ccc',
-                marginBottom: '10px',
+                border: nameError ? '1px solid #d32f2f' : '1px solid #ccc',
+                marginBottom: nameError ? '4px' : '10px',
               }}
             />
+            {nameError && (
+              <div style={{ color: '#d32f2f', fontSize: '13px', marginBottom: '10px' }}>
+                {nameError}
+              </div>
+            )}
             <button
               type="submit"
+              disabled={!isNameValid}
               style={{
                 width: '100%',
                 padding: '10px',
                 fontSize: '16px',
                 fontWeight: '500',
-                backgroundColor: '#1976d2',
+                backgroundColor: isNameValid ? '#1976d2' : '#90caf9',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: 'pointer',
+                cursor: isNameValid ? 'pointer' : 'not-allowed',
               }}
             >
               Create
@@ -221,64 +239,86 @@ function LiveSessionContent() {
                 </div>
               </div>
 
-              <form onSubmit={handleSubmitDecision}>
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Decision
-                  </label>
-                  <select
-                    value={decision}
-                    onChange={(e) => updateDecision(e.target.value as DecisionAction)}
+              {canTransition(selectedCandidate.status) ? (
+                <form onSubmit={handleSubmitDecision}>
+                  <div style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                      Decision
+                    </label>
+                    <select
+                      value={decision}
+                      onChange={(e) => updateDecision(e.target.value as DecisionAction)}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        fontSize: '16px',
+                        borderRadius: '4px',
+                        border: '1px solid #ccc',
+                      }}
+                    >
+                      <option value="SHORTLIST">Shortlist</option>
+                      <option value="REJECT">Reject</option>
+                    </select>
+                  </div>
+
+                  <div style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                      Reason (min {MIN_REASON_LENGTH} characters)
+                    </label>
+                    <textarea
+                      value={rsn}
+                      onChange={(e) => handleReasonChange(e.target.value)}
+                      rows={4}
+                      placeholder="Enter your reason..."
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        fontSize: '16px',
+                        borderRadius: '4px',
+                        border: reasonError ? '1px solid #d32f2f' : '1px solid #ccc',
+                        fontFamily: 'system-ui',
+                        marginBottom: reasonError ? '4px' : '0',
+                      }}
+                    />
+                    {reasonError && (
+                      <div style={{ color: '#d32f2f', fontSize: '13px', marginBottom: '4px' }}>
+                        {reasonError}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!isReasonValid}
                     style={{
                       width: '100%',
-                      padding: '10px',
+                      padding: '12px',
                       fontSize: '16px',
+                      fontWeight: '500',
+                      backgroundColor: isReasonValid ? '#1976d2' : '#90caf9',
+                      color: 'white',
+                      border: 'none',
                       borderRadius: '4px',
-                      border: '1px solid #ccc',
+                      cursor: isReasonValid ? 'pointer' : 'not-allowed',
                     }}
                   >
-                    <option value="SHORTLIST">Shortlist</option>
-                    <option value="REJECT">Reject</option>
-                  </select>
-                </div>
-
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                    Reason (min 10 characters)
-                  </label>
-                  <textarea
-                    value={rsn}
-                    onChange={(e) => setRsn(e.target.value)}
-                    rows={4}
-                    placeholder="Enter your reason..."
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      fontSize: '16px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      fontFamily: 'system-ui',
-                    }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
+                    Submit Decision
+                  </button>
+                </form>
+              ) : (
+                <div
                   style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    backgroundColor: '#1976d2',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
+                    padding: '15px',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '8px',
+                    color: '#666',
+                    textAlign: 'center',
                   }}
                 >
-                  Submit Decision
-                </button>
-              </form>
+                  This candidate has already been{' '}
+                  {selectedCandidate.status === 'SHORTLISTED' ? 'shortlisted' : 'rejected'}.
+                </div>
+              )}
             </>
           )}
         </div>
@@ -296,7 +336,7 @@ function LiveSessionContent() {
           <li>
             {'REJECTED'} candidates cannot be {'SHORTLISTED'}
           </li>
-          <li>Reason must be at least {'10'} characters</li>
+          <li>Reason must be at least {MIN_REASON_LENGTH} characters</li>
         </ul>
       </div>
     </div>

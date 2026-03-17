@@ -1,6 +1,6 @@
 import { CandidateStatus } from '@/domain/types/candidate'
-import { ValidationError } from '@/domain/errors'
-import { InvalidTransitionError } from '@/domain/errors'
+import { ValidationError, InvalidTransitionError } from '@/domain/errors'
+import { isValidName, isValidReason, canTransition } from '@/domain/validation'
 
 export class Candidate {
   public readonly id: string
@@ -18,27 +18,27 @@ export class Candidate {
   }
 
   static create(id: string, name: string, status: CandidateStatus = 'NEW'): Candidate {
-    if (!name || name.trim().length === 0) {
+    if (!isValidName(name)) {
       throw new ValidationError('Name cannot be empty')
     }
     return new Candidate(id, name, status)
   }
 
   shortlist(reason: string): void {
-    if (typeof reason !== 'string' || reason.trim().length < 10) {
+    if (!isValidReason(reason)) {
       throw new ValidationError('Reason must be at least 10 characters')
     }
-    if (this._status !== 'NEW') {
+    if (!canTransition(this._status)) {
       throw new InvalidTransitionError(this._status, 'SHORTLISTED')
     }
     this._status = 'SHORTLISTED'
   }
 
   reject(reason: string): void {
-    if (typeof reason !== 'string' || reason.trim().length < 10) {
+    if (!isValidReason(reason)) {
       throw new ValidationError('Reason must be at least 10 characters')
     }
-    if (this._status !== 'NEW') {
+    if (!canTransition(this._status)) {
       throw new InvalidTransitionError(this._status, 'REJECTED')
     }
     this._status = 'REJECTED'
