@@ -12,6 +12,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import type { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
 import { isValidReason, canTransition, MIN_REASON_LENGTH } from '@/domain/validation'
+import { useFieldValidation } from '@/hooks/use-field-validation'
 import { StatusBadge } from './status-badge'
 
 interface UpdateStatusFormProps {
@@ -22,29 +23,19 @@ interface UpdateStatusFormProps {
 
 export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: UpdateStatusFormProps) {
   const [decision, setDecision] = useState<DecisionAction>(defaultDecision ?? 'SHORTLIST')
-  const [reason, setReason] = useState('')
-  const [reasonError, setReasonError] = useState<string | null>(null)
-
-  const isValid = isValidReason(reason)
-
-  const handleReasonChange = (value: string) => {
-    setReason(value)
-    if (!isValidReason(value)) {
-      setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
-    } else {
-      setReasonError(null)
-    }
-  }
+  const {
+    value: reason,
+    error: reasonError,
+    isValid,
+    handleChange: handleReasonChange,
+    reset: resetReason,
+  } = useFieldValidation(isValidReason, `Reason must be at least ${MIN_REASON_LENGTH} characters`)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValidReason(reason)) {
-      setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
-      return
-    }
+    if (!isValid) return
     onSubmit(decision, reason)
-    setReason('')
-    setReasonError(null)
+    resetReason()
   }
 
   return (
@@ -66,8 +57,12 @@ export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: Updat
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="decision">Decision</Label>
-            <Select value={decision} onValueChange={(v) => setDecision(v as DecisionAction)}>
-              <SelectTrigger id="decision" className="w-full">
+            <Select
+              value={decision}
+              onValueChange={(v) => setDecision(v as DecisionAction)}
+              required
+            >
+              <SelectTrigger id="decision" className="w-full" aria-required="true">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -85,6 +80,9 @@ export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: Updat
               onChange={(e) => handleReasonChange(e.target.value)}
               rows={4}
               placeholder="Enter your reason..."
+              required
+              aria-required="true"
+              minLength={MIN_REASON_LENGTH}
               aria-invalid={reasonError ? true : undefined}
               aria-describedby={reasonError ? 'reason-error' : undefined}
             />

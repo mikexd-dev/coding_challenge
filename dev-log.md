@@ -33,7 +33,14 @@
 
 ### PR feat/frontend-shadcn-components
 
-- The frontend was all inline styles and one massive page component. That's fine for a prototype but it makes it hard to maintain or extend. I want to break it into proper **reusable components** and use **shadcn/ui** as the design system so everything looks consistent and polished without writing custom CSS.
-- The folder structure was also confusing — we had `src/ui/components/` for custom components and `src/components/ui/` for shadcn primitives, plus `src/ui/api/` for the API client. I consolidated everything into the **standard Next.js convention**: custom components at `src/components/`, shadcn primitives stay at `src/components/ui/`, and the API client moves to `src/lib/api/`. This way `npx shadcn add` still works out of the box and there's one obvious place for each thing.
-- Extracted **CandidateBoard**, **CandidateCard**, **CreateCandidateForm**, **UpdateStatusForm**, **StatusBadge**, and **BusinessRules** as separate components. Each one owns its own presentation logic and validation. The page component is now just orchestration — fetch data, handle events, render components.
-- Moved the **business rules** section to a **sticky bottom footer** so it's always visible while interacting with candidates. This is a small UX improvement — you don't have to scroll down to remember what transitions are allowed.
+- The current frontend is a single massive page component with inline styles — fine for a prototype but hard to maintain or extend. I want to break it into proper **reusable components** and bring in **shadcn/ui** as the design system so everything is consistent and polished without writing custom CSS from scratch.
+- The folder structure is also confusing right now — `src/ui/components/` for custom components, `src/components/ui/` for shadcn primitives, and `src/ui/api/` for the API client are all over the place. I want to consolidate into the **standard Next.js convention**: custom components at `src/components/`, shadcn primitives at `src/components/ui/`, and the API client at `src/lib/api/`. This way `npx shadcn add` keeps working out of the box and there is one obvious place for each thing.
+- I will extract **CandidateBoard**, **CandidateCard**, **CreateCandidateForm**, **UpdateStatusForm**, **StatusBadge**, and **BusinessRules** as separate components. Each should own its own presentation logic and validation. The page component should become pure orchestration — fetch data, handle events, render components.
+- I also want to move the **business rules** section to a **sticky bottom footer** so it is always visible while interacting with candidates. A small UX improvement — you should not have to scroll down to remember what transitions are allowed.
+- I will also want to convert the UI to an actual candidate board that behaves like a trello task tracking board that can capture the process of a candidate going through the interview process.
+
+### PR feat/frontend-refactoring
+
+- I will also implement tanstack query for data fetching and state management. This is a more robust solution than the current fetch implementation and will provide better performance and user experience.
+- I will also introduce some optimistic-updates especially for card movements, to provide a better user experience.
+- I will also add error-boundary to catch any errors that may occur during the rendering of the application.

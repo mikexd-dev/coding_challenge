@@ -1,37 +1,27 @@
-import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { isValidName } from '@/domain/validation'
+import { useFieldValidation } from '@/hooks/use-field-validation'
 
 interface CreateCandidateFormProps {
   onSubmit: (name: string) => void
 }
 
 export function CreateCandidateForm({ onSubmit }: CreateCandidateFormProps) {
-  const [name, setName] = useState('')
-  const [error, setError] = useState<string | null>(null)
-
-  const isValid = isValidName(name)
-
-  const handleNameChange = (value: string) => {
-    setName(value)
-    if (!isValidName(value)) {
-      setError('Name cannot be empty or whitespace only')
-    } else {
-      setError(null)
-    }
-  }
+  const {
+    value: name,
+    error,
+    isValid,
+    handleChange,
+    reset,
+  } = useFieldValidation(isValidName, 'Name cannot be empty or whitespace only')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValidName(name)) {
-      setError('Name cannot be empty or whitespace only')
-      return
-    }
+    if (!isValid) return
     onSubmit(name)
-    setName('')
-    setError(null)
+    reset()
   }
 
   return (
@@ -42,8 +32,10 @@ export function CreateCandidateForm({ onSubmit }: CreateCandidateFormProps) {
           id="candidate-name"
           type="text"
           value={name}
-          onChange={(e) => handleNameChange(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder="Candidate name"
+          required
+          aria-required="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'name-error' : undefined}
         />

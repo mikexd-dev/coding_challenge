@@ -45,6 +45,7 @@ function SkeletonColumn() {
 
 export function CandidateBoard({ candidates, onCardClick, onDrop, loading }: CandidateBoardProps) {
   const [activeCandidate, setActiveCandidate] = useState<CandidateDTO | null>(null)
+  const [announcement, setAnnouncement] = useState('')
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   const keyboardSensor = useSensor(KeyboardSensor)
   const sensors = useSensors(pointerSensor, keyboardSensor)
@@ -59,30 +60,43 @@ export function CandidateBoard({ candidates, onCardClick, onDrop, loading }: Can
 
   const handleDragStart = (event: DragStartEvent) => {
     const candidate = event.active.data.current?.candidate as CandidateDTO | undefined
-    if (candidate) setActiveCandidate(candidate)
+    if (candidate) {
+      setActiveCandidate(candidate)
+      setAnnouncement(
+        `Picked up ${candidate.name} from ${candidate.status}. Use arrow keys to move between columns.`
+      )
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveCandidate(null)
     const { active, over } = event
-    if (!over) return
+    if (!over) {
+      const candidate = active.data.current?.candidate as CandidateDTO | undefined
+      setAnnouncement(candidate ? `Dropped ${candidate.name}. No change.` : '')
+      return
+    }
 
     const candidate = active.data.current?.candidate as CandidateDTO | undefined
     if (!candidate) return
 
     const targetStatus = over.id as CandidateStatus
-    if (targetStatus === candidate.status) return
+    if (targetStatus === candidate.status) {
+      setAnnouncement(`Dropped ${candidate.name} back in ${candidate.status}.`)
+      return
+    }
     if (!canTransition(candidate.status)) return
 
     const decision = STATUS_TO_DECISION[targetStatus]
     if (decision) {
+      setAnnouncement(`Moved ${candidate.name} to ${targetStatus}.`)
       onDrop(candidate.id, decision)
     }
   }
 
   if (loading) {
     return (
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4" aria-busy="true" aria-label="Loading candidate board">
         {STATUSES.map((s) => (
           <SkeletonColumn key={s} />
         ))}
@@ -92,7 +106,7 @@ export function CandidateBoard({ candidates, onCardClick, onDrop, loading }: Can
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4" aria-busy="false">
         {STATUSES.map((status) => (
           <KanbanColumn key={status} status={status} count={grouped[status].length}>
             {grouped[status].map((candidate) => (
@@ -112,6 +126,10 @@ export function CandidateBoard({ candidates, onCardClick, onDrop, loading }: Can
           </Card>
         ) : null}
       </DragOverlay>
+
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {announcement}
+      </div>
     </DndContext>
   )
 }

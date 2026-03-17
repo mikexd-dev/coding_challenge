@@ -26,6 +26,8 @@ export function KanbanColumn({ status, count, children }: KanbanColumnProps) {
   return (
     <div
       ref={setNodeRef}
+      role="group"
+      aria-label={`${status} candidates, ${count} ${count === 1 ? 'candidate' : 'candidates'}`}
       className={cn(
         'flex flex-col rounded-lg border-2 bg-muted/30 p-3 min-h-[200px] transition-colors',
         columnColors[status],
@@ -38,7 +40,7 @@ export function KanbanColumn({ status, count, children }: KanbanColumnProps) {
           headerColors[status]
         )}
       >
-        <span>{status}</span>
+        <h3 className="text-sm font-semibold">{status}</h3>
         <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-medium">{count}</span>
       </div>
 
