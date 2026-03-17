@@ -19,7 +19,8 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm i @rolldown/binding-linux-x64-gnu --no-save
+      - name: Install Linux native bindings
+        run: npm i @rolldown/binding-linux-x64-gnu lightningcss-linux-x64-gnu @tailwindcss/oxide-linux-x64-gnu --no-save
 
       - name: Typecheck
         run: npm run typecheck
@@ -32,3 +33,9 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: E2E tests
+        run: npm run test:e2e

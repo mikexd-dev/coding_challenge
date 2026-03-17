@@ -1,5 +1,6 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import { Toaster } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Providers } from './providers'
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Providers>
           <main id="main-content">{children}</main>
+          <Toaster richColors closeButton />
         </Providers>
       </body>
     </html>
