@@ -13,6 +13,8 @@ Open http://localhost:3000/live-session
 
 ## Approach
 
+Detailed Approach to refer to [dev-logs.md](dev-logs.md)
+
 1. **Analyze the codebase** — understood what was broken before touching anything. Identified a high-severity Next.js vulnerability, missing business rule enforcement, an anemic domain model, business logic in route handlers, and weak TypeScript usage.
 
 2. **Fix security vulnerability** — updated Next.js to the latest version not affected by the CVE, along with required syntax changes (async params in route handlers).
@@ -69,14 +71,14 @@ src/
 
 ## Key Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| TypeScript strict mode | `strict: true` | Challenge evaluates TS best practices; surfaced real bugs (`as any`, null unsafety) |
-| Vitest over Jest | Vitest | Native ESM, faster, Next.js compatible — no ts-jest config needed |
-| ESLint flat config | `eslint.config.mjs` | ESLint 9+ standard, no legacy `.eslintrc` baggage |
-| Prettier style | Match team backend | Consistency across repos (semi: false, singleQuote, trailingComma: es5) |
-| printWidth 100 vs 200 | 100 | Backend uses 200 which hurts readability in review context |
-| Domain types naming | `domain/types/` not `domain/contracts/` | "contracts" implies external API boundaries; these are domain-level definitions |
+| Decision               | Choice                                  | Rationale                                                                           |
+| ---------------------- | --------------------------------------- | ----------------------------------------------------------------------------------- |
+| TypeScript strict mode | `strict: true`                          | Challenge evaluates TS best practices; surfaced real bugs (`as any`, null unsafety) |
+| Vitest over Jest       | Vitest                                  | Native ESM, faster, Next.js compatible — no ts-jest config needed                   |
+| ESLint flat config     | `eslint.config.mjs`                     | ESLint 9+ standard, no legacy `.eslintrc` baggage                                   |
+| Prettier style         | Match team backend                      | Consistency across repos (semi: false, singleQuote, trailingComma: es5)             |
+| printWidth 100 vs 200  | 100                                     | Backend uses 200 which hurts readability in review context                          |
+| Domain types naming    | `domain/types/` not `domain/contracts/` | "contracts" implies external API boundaries; these are domain-level definitions     |
 
 ## Testing Strategy
 
