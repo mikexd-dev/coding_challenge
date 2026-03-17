@@ -39,8 +39,16 @@
 - I also want to move the **business rules** section to a **sticky bottom footer** so it is always visible while interacting with candidates. A small UX improvement — you should not have to scroll down to remember what transitions are allowed.
 - I will also want to convert the UI to an actual candidate board that behaves like a trello task tracking board that can capture the process of a candidate going through the interview process.
 
-### PR feat/frontend-refactoring
+### PR refactor/frontend-refactoring
 
 - I will also implement tanstack query for data fetching and state management. This is a more robust solution than the current fetch implementation and will provide better performance and user experience.
 - I will also introduce some optimistic-updates especially for card movements, to provide a better user experience.
 - I will also add error-boundary to catch any errors that may occur during the rendering of the application.
+- I will also refactor the frontend with accessibility features such as aria-labels, keyboard navigation, and screen reader support.
+
+### PR feat/neon-adapter
+
+- I will also implement neon as the database for the application. This is a more robust solution than the current in-memory storage implementation and will provide better performance and user experience.
+- I will also implement a migration system to manage the database schema.
+- I will also refactor the current repository pattern to improve the facade layer to support multiple database implementations.
+- Chose not to change the current c_id to uuid, but if it is an actual production app, I would prefer to user uuid instead.
