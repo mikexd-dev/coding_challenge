@@ -19,7 +19,7 @@ GitHub CI is integrated — every PR runs the full quality suite (typecheck, lin
 
 ## Approach
 
-Detailed Approach to refer to [dev-logs.md](dev-logs.md) where I document the high level design decisions and trade-offs I made during the development process as raw notes.
+Detailed Approach to refer to [dev-log.md](dev-log.md) where I document the high level design decisions and trade-offs I made during the development process as raw notes.
 
 But main rationale of the entire proecess is to establish the baseline standard first for subsequent commits. Then move to establish a current state of the codebase through writing tests. Determmine the tests that failed and only then proceed to fix them. This ensures that I don't break any existing functionality while adding new features. And incrementally while i add new features to also add tests, and in CI/CD pipeline to run all the tests to ensure that the codebase is always in a good state before PR can be merged. And in PR there is coderabbit to review the code and ensure that it meets the baseline standard.
 
