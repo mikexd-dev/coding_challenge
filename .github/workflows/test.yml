@@ -19,7 +19,7 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm i @rolldown/binding-linux-x64-gnu --no-save
+      - run: npm i @rolldown/binding-linux-x64-gnu lightningcss-linux-x64-gnu --no-save
 
       - name: Typecheck
         run: npm run typecheck

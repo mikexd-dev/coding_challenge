@@ -18,9 +18,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npx next dev --port ${port}`,
+    command: process.env.CI
+      ? `npx next build && npx next start --port ${port}`
+      : `npx next dev --port ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
     env: {
       DATABASE_URL: '',
     },
