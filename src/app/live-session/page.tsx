@@ -38,7 +38,7 @@ function LiveSessionContent() {
 
   const handleNameChange = (value: string) => {
     setNewName(value)
-    if (value && !isValidName(value)) {
+    if (!isValidName(value)) {
       setNameError('Name cannot be empty or whitespace only')
     } else {
       setNameError(null)
@@ -47,7 +47,7 @@ function LiveSessionContent() {
 
   const handleReasonChange = (value: string) => {
     setRsn(value)
-    if (value && !isValidReason(value)) {
+    if (!isValidReason(value)) {
       setReasonError(`Reason must be at least ${MIN_REASON_LENGTH} characters`)
     } else {
       setReasonError(null)
