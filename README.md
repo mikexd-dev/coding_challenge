@@ -11,6 +11,12 @@ npm run dev
 
 Open http://localhost:3000/live-session
 
+## Live Demo
+
+Deployed on Vercel: https://coding-challenge-workfully.vercel.app/live-session
+
+GitHub CI is integrated — every PR runs the full quality suite (typecheck, lint, format check, unit/integration tests, and Playwright E2E) before merging.
+
 ## Approach
 
 Detailed Approach to refer to [dev-logs.md](dev-logs.md) where I document the high level design decisions and trade-offs I made during the development process as raw notes.
