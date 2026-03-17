@@ -1,23 +1,29 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
 import { getAllCandidates, createCandidate, submitDecision } from '@/lib/api/candidates'
 import { CandidateBoard } from '@/components/candidate-board'
 import { CreateCandidateForm } from '@/components/create-candidate-form'
-import { UpdateStatusForm } from '@/components/update-status-form'
+import { CandidateSheet } from '@/components/candidate-sheet'
 import { BusinessRules } from '@/components/business-rules'
 import { Skeleton } from '@/components/ui/skeleton'
 
-function LiveSessionContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const selectedId = searchParams.get('candidateId')
+interface SheetState {
+  open: boolean
+  candidateId: string | null
+  prefilledDecision: DecisionAction | null
+}
 
+function LiveSessionContent() {
   const [candidates, setCandidates] = useState<CandidateDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sheetState, setSheetState] = useState<SheetState>({
+    open: false,
+    candidateId: null,
+    prefilledDecision: null,
+  })
 
   useEffect(() => {
     fetchCandidates()
@@ -35,8 +41,18 @@ function LiveSessionContent() {
     }
   }
 
-  const handleSelectCandidate = (id: string) => {
-    router.push(`?candidateId=${id}`)
+  const handleCardClick = (id: string) => {
+    setSheetState({ open: true, candidateId: id, prefilledDecision: null })
+  }
+
+  const handleDrop = (candidateId: string, decision: DecisionAction) => {
+    setSheetState({ open: true, candidateId, prefilledDecision: decision })
+  }
+
+  const handleSheetOpenChange = (open: boolean) => {
+    if (!open) {
+      setSheetState({ open: false, candidateId: null, prefilledDecision: null })
+    }
   }
 
   const handleCreateCandidate = async (name: string) => {
@@ -51,20 +67,20 @@ function LiveSessionContent() {
 
   const handleSubmitDecision = async (decision: DecisionAction, reason: string) => {
     setError(null)
-    if (!selectedId) return
+    if (!sheetState.candidateId) return
     try {
-      await submitDecision(selectedId, decision, reason)
-      router.push('/live-session')
+      await submitDecision(sheetState.candidateId, decision, reason)
+      setSheetState({ open: false, candidateId: null, prefilledDecision: null })
       fetchCandidates()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error')
     }
   }
 
-  const selectedCandidate = candidates.find((c) => c.id === selectedId)
+  const selectedCandidate = candidates.find((c) => c.id === sheetState.candidateId) ?? null
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12 pb-36 font-sans">
+    <div className="mx-auto max-w-6xl px-6 py-12 pb-36 font-sans">
       <h1 className="text-2xl font-bold mb-6">Candidate Management</h1>
 
       {error && (
@@ -73,34 +89,31 @@ function LiveSessionContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-[2fr_1fr]">
-        <div>
-          <h2 className="text-lg font-semibold mb-4">Candidate Board</h2>
-          <CandidateBoard
-            candidates={candidates}
-            selectedId={selectedId}
-            onSelect={handleSelectCandidate}
-            loading={loading}
-          />
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Create Candidate</h2>
-            <CreateCandidateForm onSubmit={handleCreateCandidate} />
-          </div>
-
-          {selectedCandidate && (
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Update Status</h2>
-              <UpdateStatusForm candidate={selectedCandidate} onSubmit={handleSubmitDecision} />
-            </div>
-          )}
-        </div>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-4">Create Candidate</h2>
+        <CreateCandidateForm onSubmit={handleCreateCandidate} />
       </div>
 
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Candidate Board</h2>
+        <CandidateBoard
+          candidates={candidates}
+          onCardClick={handleCardClick}
+          onDrop={handleDrop}
+          loading={loading}
+        />
+      </div>
+
+      <CandidateSheet
+        open={sheetState.open}
+        onOpenChange={handleSheetOpenChange}
+        candidate={selectedCandidate}
+        prefilledDecision={sheetState.prefilledDecision}
+        onSubmit={handleSubmitDecision}
+      />
+
       <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-6 py-3">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <BusinessRules />
         </div>
       </div>
@@ -112,12 +125,9 @@ export default function LiveSession() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-5xl px-6 py-12">
+        <div className="mx-auto max-w-6xl px-6 py-12">
           <Skeleton className="h-8 w-64 mb-6" />
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-[2fr_1fr]">
-            <Skeleton className="h-48" />
-            <Skeleton className="h-32" />
-          </div>
+          <Skeleton className="h-48" />
         </div>
       }
     >

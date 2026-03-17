@@ -17,10 +17,11 @@ import { StatusBadge } from './status-badge'
 interface UpdateStatusFormProps {
   candidate: CandidateDTO
   onSubmit: (decision: DecisionAction, reason: string) => void
+  defaultDecision?: DecisionAction
 }
 
-export function UpdateStatusForm({ candidate, onSubmit }: UpdateStatusFormProps) {
-  const [decision, setDecision] = useState<DecisionAction>('SHORTLIST')
+export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: UpdateStatusFormProps) {
+  const [decision, setDecision] = useState<DecisionAction>(defaultDecision ?? 'SHORTLIST')
   const [reason, setReason] = useState('')
   const [reasonError, setReasonError] = useState<string | null>(null)
 
