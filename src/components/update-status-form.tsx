@@ -57,8 +57,12 @@ export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: Updat
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="decision">Decision</Label>
-            <Select value={decision} onValueChange={(v) => setDecision(v as DecisionAction)}>
-              <SelectTrigger id="decision" className="w-full">
+            <Select
+              value={decision}
+              onValueChange={(v) => setDecision(v as DecisionAction)}
+              required
+            >
+              <SelectTrigger id="decision" className="w-full" aria-required="true">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -76,6 +80,9 @@ export function UpdateStatusForm({ candidate, onSubmit, defaultDecision }: Updat
               onChange={(e) => handleReasonChange(e.target.value)}
               rows={4}
               placeholder="Enter your reason..."
+              required
+              aria-required="true"
+              minLength={MIN_REASON_LENGTH}
               aria-invalid={reasonError ? true : undefined}
               aria-describedby={reasonError ? 'reason-error' : undefined}
             />

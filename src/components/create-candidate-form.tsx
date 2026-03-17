@@ -34,6 +34,8 @@ export function CreateCandidateForm({ onSubmit }: CreateCandidateFormProps) {
           value={name}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Candidate name"
+          required
+          aria-required="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'name-error' : undefined}
         />

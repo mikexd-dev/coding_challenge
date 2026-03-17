@@ -1,4 +1,5 @@
 import { useDraggable } from '@dnd-kit/core'
+import { GripVertical } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CandidateDTO } from '@/domain/types/candidate'
@@ -28,10 +29,17 @@ export function CandidateCard({ candidate, onClick }: CandidateCardProps) {
       )}
       onClick={() => onClick(candidate.id)}
       size="sm"
-      {...(isDraggable ? { ...listeners, ...attributes } : {})}
+      {...(isDraggable
+        ? { ...listeners, ...attributes, 'aria-roledescription': 'draggable candidate card' }
+        : {})}
     >
       <CardContent className="flex items-center justify-between">
-        <span className="font-medium text-sm">{candidate.name}</span>
+        <span className="flex items-center gap-1.5">
+          {isDraggable && (
+            <GripVertical className="size-4 text-muted-foreground shrink-0" aria-hidden="true" />
+          )}
+          <span className="font-medium text-sm">{candidate.name}</span>
+        </span>
         <StatusBadge status={candidate.status} />
       </CardContent>
     </Card>
