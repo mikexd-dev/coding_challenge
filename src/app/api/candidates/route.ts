@@ -6,6 +6,7 @@ import {
 } from '@/infrastructure/persistence/storage'
 import { Candidate } from '@/domain/models/candidate'
 import { CandidateDTO, CreateCandidateRequest, ErrorResponse } from '@/domain/types/candidate'
+import { ValidationError } from '@/domain/errors'
 
 export async function GET() {
   try {
@@ -39,7 +40,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(response, { status: 201 })
-  } catch (_error) {
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message } as ErrorResponse, { status: 400 })
+    }
     return NextResponse.json({ error: 'Error' } as ErrorResponse, { status: 500 })
   }
 }

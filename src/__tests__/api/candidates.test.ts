@@ -45,8 +45,7 @@ describe('Candidates API', () => {
       expect(data.id).toBeDefined()
     })
 
-    // GAP: No name validation — empty string is accepted
-    it.fails('rejects empty name with 400', async () => {
+    it('rejects empty name with 400', async () => {
       const request = createRequest({ name: '' })
       const response = await POST(request)
       expect(response.status).toBe(400)
@@ -100,8 +99,7 @@ describe('Candidates API', () => {
       expect(response.status).toBe(400)
     })
 
-    // GAP: No transition guard — REJECTED candidates can be shortlisted
-    it.fails('prevents shortlisting a REJECTED candidate (409)', async () => {
+    it('prevents shortlisting a REJECTED candidate (409)', async () => {
       // First reject the candidate
       const { request: rejectReq, context: rejectCtx } = createDecisionRequest('c_1', {
         decision: 'REJECT',
@@ -118,8 +116,7 @@ describe('Candidates API', () => {
       expect(response.status).toBe(409)
     })
 
-    // GAP: No transition guard — SHORTLISTED candidates can be rejected
-    it.fails('prevents rejecting a SHORTLISTED candidate (409)', async () => {
+    it('prevents rejecting a SHORTLISTED candidate (409)', async () => {
       // First shortlist the candidate
       const { request: shortlistReq, context: shortlistCtx } = createDecisionRequest('c_1', {
         decision: 'SHORTLIST',
@@ -136,8 +133,7 @@ describe('Candidates API', () => {
       expect(response.status).toBe(409)
     })
 
-    // GAP: No reason validation — reason is ignored entirely
-    it.fails('rejects reason shorter than 10 characters (400)', async () => {
+    it('rejects reason shorter than 10 characters (400)', async () => {
       const { request, context } = createDecisionRequest('c_1', {
         decision: 'SHORTLIST',
         reason: 'short',

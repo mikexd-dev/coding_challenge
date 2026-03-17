@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCandidateById, saveCandidate } from '@/infrastructure/persistence/storage'
-import { CandidateStatus, ErrorResponse, DecisionRequest } from '@/domain/types/candidate'
+import { ErrorResponse, DecisionRequest } from '@/domain/types/candidate'
+import { ValidationError, InvalidTransitionError } from '@/domain/errors'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: candidateId } = await params
@@ -8,7 +9,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const body: DecisionRequest = await request.json()
     const decision = body.decision
-    const _reason = body.reason
+    const reason = body.reason
 
     const candidate = getCandidateById(candidateId)
 
@@ -16,15 +17,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Candidate not found' } as ErrorResponse, { status: 404 })
     }
 
-    let newStatus: CandidateStatus
     if (decision === 'SHORTLIST') {
-      newStatus = 'SHORTLISTED'
+      candidate.shortlist(reason)
     } else if (decision === 'REJECT') {
-      newStatus = 'REJECTED'
+      candidate.reject(reason)
     } else {
       return NextResponse.json({ error: 'Invalid decision' } as ErrorResponse, { status: 400 })
     }
-    candidate.status = newStatus
 
     saveCandidate(candidate)
 
@@ -35,7 +34,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     return NextResponse.json(response, { status: 200 })
-  } catch (_error) {
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message } as ErrorResponse, { status: 400 })
+    }
+    if (error instanceof InvalidTransitionError) {
+      return NextResponse.json({ error: error.message } as ErrorResponse, { status: 409 })
+    }
     return NextResponse.json({ error: 'Error' } as ErrorResponse, { status: 500 })
   }
 }
