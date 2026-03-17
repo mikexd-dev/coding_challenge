@@ -41,8 +41,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 201 })
   } catch (error) {
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message } as ErrorResponse, { status: 400 })
+    if (error instanceof ValidationError || error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          error: error instanceof SyntaxError ? 'Invalid JSON payload' : error.message,
+        } as ErrorResponse,
+        { status: 400 }
+      )
     }
     return NextResponse.json({ error: 'Error' } as ErrorResponse, { status: 500 })
   }

@@ -7,7 +7,7 @@ export class Candidate {
   public readonly name: string
   private _status: CandidateStatus
 
-  constructor(id: string, name: string, status: CandidateStatus) {
+  private constructor(id: string, name: string, status: CandidateStatus) {
     this.id = id
     this.name = name
     this._status = status
@@ -25,7 +25,7 @@ export class Candidate {
   }
 
   shortlist(reason: string): void {
-    if (reason.length < 10) {
+    if (typeof reason !== 'string' || reason.trim().length < 10) {
       throw new ValidationError('Reason must be at least 10 characters')
     }
     if (this._status !== 'NEW') {
@@ -35,7 +35,7 @@ export class Candidate {
   }
 
   reject(reason: string): void {
-    if (reason.length < 10) {
+    if (typeof reason !== 'string' || reason.trim().length < 10) {
       throw new ValidationError('Reason must be at least 10 characters')
     }
     if (this._status !== 'NEW') {

@@ -11,6 +11,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const decision = body.decision
     const reason = body.reason
 
+    if (!reason || typeof reason !== 'string') {
+      return NextResponse.json({ error: 'Invalid reason' } as ErrorResponse, { status: 400 })
+    }
+
     const candidate = getCandidateById(candidateId)
 
     if (!candidate) {
@@ -35,8 +39,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message } as ErrorResponse, { status: 400 })
+    if (error instanceof ValidationError || error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          error: error instanceof SyntaxError ? 'Invalid JSON payload' : error.message,
+        } as ErrorResponse,
+        { status: 400 }
+      )
     }
     if (error instanceof InvalidTransitionError) {
       return NextResponse.json({ error: error.message } as ErrorResponse, { status: 409 })
