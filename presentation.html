@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Challenge — Presenter Copy</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3345;
+    --text: #e2e8f0;
+    --text-muted: #8892a8;
+    --accent: #6366f1;
+    --accent-light: #818cf8;
+    --green: #34d399;
+    --green-dim: #065f46;
+    --red: #f87171;
+    --red-dim: #7f1d1d;
+    --blue: #60a5fa;
+    --blue-dim: #1e3a5f;
+    --yellow: #fbbf24;
+    --yellow-dim: #78350f;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --pink: #f472b6;
+    --tab-width: 260px;
+    --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--tab-width);
+    min-width: var(--tab-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+  }
+  .sidebar-header p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .tab-list { list-style: none; padding: 8px 0; }
+  .tab-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tab-item:hover { background: var(--surface2); }
+  .tab-item.active {
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+  .tab-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .tab-item.active .tab-num { background: var(--accent); color: #fff; }
+  .tab-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+  .tab-item.active .tab-label { color: var(--text); }
+
+  /* Main content */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 56px;
+    scroll-behavior: smooth;
+  }
+  .main::-webkit-scrollbar { width: 6px; }
+  .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .panel { display: none; animation: fadeIn 0.2s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* Typography */
+  .panel h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent-light), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .panel .subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .panel h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 28px 0 12px;
+    color: var(--text);
+  }
+  .panel h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    color: var(--accent-light);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .panel p, .panel li {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .panel ul { padding-left: 20px; margin: 8px 0; }
+  .panel li { margin: 4px 0; }
+  .panel strong { color: var(--text); }
+
+  /* Code blocks */
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+  pre .kw { color: var(--purple); }
+  pre .fn { color: var(--blue); }
+  pre .str { color: var(--green); }
+  pre .cm { color: #4a5568; font-style: italic; }
+  pre .tp { color: var(--yellow); }
+  pre .num { color: var(--orange); }
+
+  code:not(pre code) {
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    color: var(--accent-light);
+  }
+
+  /* Cards & Callouts */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card .icon { font-size: 24px; margin-bottom: 8px; }
+  .card h5 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .card p { font-size: 13px; }
+
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-left: 4px solid;
+  }
+  .callout.info { background: var(--blue-dim); border-color: var(--blue); }
+  .callout.warn { background: var(--yellow-dim); border-color: var(--yellow); }
+  .callout.good { background: var(--green-dim); border-color: var(--green); }
+  .callout.bad { background: var(--red-dim); border-color: var(--red); }
+  .callout p { color: var(--text); }
+  .callout strong { color: #fff; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 28px; margin: 16px 0; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-item { position: relative; margin-bottom: 20px; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .tl-item .tl-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .tl-item .tl-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .tl-item .tl-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .tag-feat { background: var(--green-dim); color: var(--green); }
+  .tag-fix { background: var(--red-dim); color: var(--red); }
+  .tag-refactor { background: var(--blue-dim); color: var(--blue); }
+
+  /* Diagram boxes */
+  .diagram {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+    padding: 24px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .dbox {
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+  }
+  .dbox.domain { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+  .dbox.infra { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .dbox.app { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow); }
+  .dbox.ui { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid var(--purple); }
+  .darrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 20px;
+  }
+
+  /* State machine */
+  .state-machine {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    padding: 24px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .state {
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    min-width: 130px;
+  }
+  .state.new { background: var(--blue-dim); color: var(--blue); border: 2px solid var(--blue); }
+  .state.short { background: var(--green-dim); color: var(--green); border: 2px solid var(--green); }
+  .state.rej { background: var(--red-dim); color: var(--red); border: 2px solid var(--red); }
+  .arrow-right {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: var(--surface2);
+    font-weight: 700;
+    color: var(--text);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  td { color: var(--text-muted); }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+  .badge-purple { background: rgba(168,85,247,0.15); color: var(--purple); }
+
+  /* Testing pyramid */
+  .pyramid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 20px 0;
+    padding: 24px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .pyramid-row {
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Two-col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+
+  /* Separator */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* Keyboard nav hint */
+  .nav-hint {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: auto;
+  }
+  kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>Coding Challenge</h1>
+    <p>Presenter Copy &mdash; 12 Sections</p>
+  </div>
+  <ul class="tab-list" id="tabList">
+    <li class="tab-item active" data-tab="0"><span class="tab-num">1</span><span class="tab-label">Overview & Timeline</span></li>
+    <li class="tab-item" data-tab="1"><span class="tab-num">2</span><span class="tab-label">Tooling Foundation</span></li>
+    <li class="tab-item" data-tab="2"><span class="tab-num">3</span><span class="tab-label">Architecture & DDD</span></li>
+    <li class="tab-item" data-tab="3"><span class="tab-num">4</span><span class="tab-label">Domain Model</span></li>
+    <li class="tab-item" data-tab="4"><span class="tab-num">5</span><span class="tab-label">Shared Validation</span></li>
+    <li class="tab-item" data-tab="5"><span class="tab-num">6</span><span class="tab-label">Frontend & UI</span></li>
+    <li class="tab-item" data-tab="6"><span class="tab-num">7</span><span class="tab-label">State & Optimistic UI</span></li>
+    <li class="tab-item" data-tab="7"><span class="tab-num">8</span><span class="tab-label">Accessibility</span></li>
+    <li class="tab-item" data-tab="8"><span class="tab-num">9</span><span class="tab-label">Neon DB & Repository</span></li>
+    <li class="tab-item" data-tab="9"><span class="tab-num">10</span><span class="tab-label">Testing Strategy</span></li>
+    <li class="tab-item" data-tab="10"><span class="tab-num">11</span><span class="tab-label">CI/CD & Review</span></li>
+    <li class="tab-item" data-tab="11"><span class="tab-num">12</span><span class="tab-label">Learnings & Reflections</span></li>
+  </ul>
+  <div class="nav-hint">
+    <kbd>&uarr;</kbd> <kbd>&darr;</kbd> navigate &nbsp;&middot;&nbsp; <kbd>Enter</kbd> select
+  </div>
+</nav>
+
+<main class="main" id="mainContent">
+
+<!-- ═══════════════════════════════════════════════ TAB 0: OVERVIEW ═══════════════════════════════════════════════ -->
+<section class="panel active" data-panel="0">
+  <h2>Overview & Timeline</h2>
+  <p class="subtitle">
+    Transform a prototype candidate management page into a production-quality system.<br>
+    <strong>37 commits &middot; 7 PRs &middot; 172+ files &middot; Deployed on Vercel</strong>
+  </p>
+
+  <div class="callout info">
+    <p><strong>Core rationale:</strong> Establish baseline standards first (tooling, linting, strict TS). Write tests to discover gaps. Fix only what tests prove is broken. Add features incrementally with CI gating every PR.</p>
+  </div>
+
+  <h3>Delivery Timeline</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-title">PR #1 &mdash; Codebase Setup</div>
+      <div class="tl-desc">Fixed CVE in Next.js, added Prettier, ESLint flat config, strict TypeScript, Husky + commitlint. Light hexagonal folder structure.</div>
+      <span class="tl-tag tag-feat">foundation</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-title">PR #2 &mdash; TDD Setup</div>
+      <div class="tl-desc">Vitest + Playwright scaffold. Wrote failing tests against the prototype to document exact business rule gaps. 10 intentionally-failing tests.</div>
+      <span class="tl-tag tag-feat">testing</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-title">PR #3 &mdash; Business Rules Gap Fix</div>
+      <div class="tl-desc">Rich domain model with private constructor, typed errors, state transition guards. All 10 tests green.</div>
+      <span class="tl-tag tag-fix">domain</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-title">PR #4 &mdash; Shared Validation & Frontend</div>
+      <div class="tl-desc">Extracted validation predicates to shared module. Inline form validation. Removed empty application/ layer.</div>
+      <span class="tl-tag tag-fix">validation</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-title">PR #5 &mdash; shadcn/ui Components</div>
+      <div class="tl-desc">Monolithic page &rarr; 10+ components. shadcn/ui design system (New York style). Kanban board with @dnd-kit.</div>
+      <span class="tl-tag tag-feat">frontend</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-title">PR #6 &mdash; Frontend Refactoring</div>
+      <div class="tl-desc">TanStack Query v5, React 19 useOptimistic, ErrorBoundary, WCAG 2.1 accessibility audit.</div>
+      <span class="tl-tag tag-refactor">refactor</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-title">PR #7 &mdash; Neon DB + E2E + CI</div>
+      <div class="tl-desc">Neon adapter with Drizzle ORM, repository factory, Playwright E2E (8 scenarios), GitHub Actions pipeline, Vercel deploy.</div>
+      <span class="tl-tag tag-feat">infrastructure</span>
+    </div>
+  </div>
+
+  <h3>What Changed</h3>
+  <div class="two-col">
+    <div class="card">
+      <div class="icon">📁</div>
+      <h5>Before (Prototype)</h5>
+      <ul>
+        <li>~16 files, single page component</li>
+        <li>No tests, no linting, no types</li>
+        <li>Business logic in route handlers</li>
+        <li>No state management</li>
+        <li>Raw fetch calls in useEffect</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="icon">🏗️</div>
+      <h5>After (Production)</h5>
+      <ul>
+        <li>172+ files, hexagonal architecture</li>
+        <li>Unit + integration + E2E tests</li>
+        <li>Rich domain model with encapsulation</li>
+        <li>TanStack Query + useOptimistic</li>
+        <li>Full CI/CD with CodeRabbit review</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 1: TOOLING ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="1">
+  <h2>Tooling Foundation</h2>
+  <p class="subtitle">Guardrails exist before the codebase grows. Retrofitting is painful.</p>
+
+  <div class="callout good">
+    <p><strong>Principle:</strong> The first commit sets the standard every subsequent commit inherits.</p>
+  </div>
+
+  <h3>Tooling Stack</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">🎨</div>
+      <h5>Prettier</h5>
+      <p><code>printWidth: 100</code>, single quotes, no semis. Diverges from Laguna backend (80 width) &mdash; wider lines reduce wrapping in component JSX.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔍</div>
+      <h5>ESLint (Flat Config)</h5>
+      <p>New flat config format (<code>eslint.config.mjs</code>). TypeScript-ESLint + Next.js rules. No legacy <code>.eslintrc</code> chain.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔒</div>
+      <h5>Strict TypeScript</h5>
+      <p><code>strict: true</code>, <code>noUncheckedIndexedAccess: true</code>. Catches null/undefined at compile time. Much stricter than Laguna backend default.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🐶</div>
+      <h5>Husky + lint-staged</h5>
+      <p>Pre-commit hook: format + lint only staged files. Prevents broken code from reaching the repo.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📝</div>
+      <h5>Commitlint</h5>
+      <p>Conventional commits enforced: <code>feat:</code>, <code>fix:</code>, <code>refactor:</code>, <code>test:</code>, <code>chore:</code>. Machine-readable history.</p>
+    </div>
+    <div class="card">
+      <div class="icon">⚡</div>
+      <h5>Vitest (not Jest)</h5>
+      <p>Native ESM, Vite-based HMR. 10x faster than Jest for Next.js projects. Shares the same Vite config pipeline. Compatible API.</p>
+    </div>
+  </div>
+
+  <h3>Deliberate Divergences from Laguna Backend</h3>
+  <table>
+    <thead>
+      <tr><th>Decision</th><th>Laguna Backend</th><th>This Project</th><th>Rationale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Test runner</td><td>Jest</td><td>Vitest</td><td>Native ESM, faster, Vite-native</td></tr>
+      <tr><td>TypeScript strictness</td><td>Default</td><td><code>strict + noUncheckedIndexedAccess</code></td><td>Greenfield = no legacy to accommodate</td></tr>
+      <tr><td>Print width</td><td>80</td><td>100</td><td>JSX is wider than NestJS controllers</td></tr>
+      <tr><td>Linting config</td><td>.eslintrc</td><td>Flat config</td><td>New standard, better composability</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 2: ARCHITECTURE ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="2">
+  <h2>Architecture & DDD</h2>
+  <p class="subtitle">Lightweight hexagonal &mdash; just enough structure without over-engineering.</p>
+
+  <h3>Hexagonal Architecture (Ports & Adapters)</h3>
+  <div class="diagram">
+    <div class="dbox app">
+      app/<br>
+      <span style="font-size:11px;opacity:0.8">Next.js API routes<br>Pages (driving adapter)</span>
+    </div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox domain">
+      domain/<br>
+      <span style="font-size:11px;opacity:0.8">Models, Types, Errors<br>Validation, Repository Port</span>
+    </div>
+    <div class="darrow">&larr;</div>
+    <div class="dbox infra">
+      infrastructure/<br>
+      <span style="font-size:11px;opacity:0.8">InMemory Adapter<br>Neon Adapter (driven)</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;margin:12px 0;flex-wrap:wrap;justify-content:center;">
+    <div class="dbox ui" style="min-width:160px;">
+      components/<br>
+      <span style="font-size:11px;opacity:0.8">UI components (shadcn)</span>
+    </div>
+    <div class="dbox ui" style="min-width:160px;">
+      hooks/<br>
+      <span style="font-size:11px;opacity:0.8">Custom React hooks</span>
+    </div>
+    <div class="dbox ui" style="min-width:160px;">
+      lib/<br>
+      <span style="font-size:11px;opacity:0.8">Utilities, API client</span>
+    </div>
+  </div>
+
+  <h3>Dependency Direction</h3>
+  <div class="callout info">
+    <p><strong>Rule:</strong> Dependencies point inward. <code>app/</code> and <code>infrastructure/</code> depend on <code>domain/</code>. Domain depends on nothing external.</p>
+  </div>
+
+  <h3>File Mapping</h3>
+  <pre>
+src/
+  domain/                        <span class="cm"># Pure business logic (zero framework imports)</span>
+    models/candidate.ts          <span class="cm"># Aggregate root</span>
+    types/candidate.ts           <span class="cm"># CandidateStatus, DTOs</span>
+    errors/                      <span class="cm"># Typed error hierarchy</span>
+    validation/rules.ts          <span class="cm"># Shared pure predicates</span>
+    repositories/                <span class="cm"># Port (interface only)</span>
+  infrastructure/
+    persistence/                 <span class="cm"># Adapters implementing the port</span>
+      in-memory-repository.ts
+      neon-repository.ts
+      repository-factory.ts      <span class="cm"># Lazy singleton factory</span>
+    db/
+      connection.ts              <span class="cm"># Drizzle + Neon HTTP driver</span>
+      schema.ts                  <span class="cm"># Drizzle table definition</span>
+  app/live-session/
+    page.tsx                     <span class="cm"># Orchestration (driving adapter)</span>
+  app/api/candidates/            <span class="cm"># REST routes (driving adapter)</span>
+  </pre>
+
+  <h3>The Empty application/ Layer Decision</h3>
+  <div class="callout warn">
+    <p><strong>Deliberate omission:</strong> With a single domain and Next.js API routes already acting as the driving adapter, an application/ layer would be pure boilerplate. If cross-domain orchestration were needed, this is where it would go.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 3: DOMAIN MODEL ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="3">
+  <h2>Domain Model & Business Rules</h2>
+  <p class="subtitle">The Candidate aggregate enforces its own invariants. Route handlers contain zero business logic.</p>
+
+  <h3>State Machine</h3>
+  <div class="state-machine">
+    <div class="state new">NEW</div>
+    <div class="arrow-right">&rarr; shortlist(reason) &rarr;</div>
+    <div class="state short">SHORTLISTED</div>
+  </div>
+  <div class="state-machine" style="margin-top: 8px;">
+    <div class="state new">NEW</div>
+    <div class="arrow-right">&rarr; reject(reason) &rarr;</div>
+    <div class="state rej">REJECTED</div>
+  </div>
+
+  <div class="callout bad">
+    <p><strong>Terminal states:</strong> SHORTLISTED and REJECTED are terminal. No transitions allowed from either. <code>canTransition(status)</code> returns <code>status === 'NEW'</code>.</p>
+  </div>
+
+  <h3>Candidate Aggregate Root</h3>
+  <pre>
+<span class="kw">export class</span> <span class="tp">Candidate</span> {
+  <span class="kw">public readonly</span> id: <span class="tp">string</span>
+  <span class="kw">public readonly</span> name: <span class="tp">string</span>
+  <span class="kw">private</span> _status: <span class="tp">CandidateStatus</span>        <span class="cm">// Encapsulated &mdash; no direct mutation</span>
+  <span class="kw">private</span> _reason: <span class="tp">string</span> | <span class="tp">null</span>
+  <span class="kw">private</span> _decisionDate: <span class="tp">Date</span> | <span class="tp">null</span>
+
+  <span class="kw">private constructor</span>(...) { }           <span class="cm">// Cannot be instantiated directly</span>
+
+  <span class="kw">static</span> <span class="fn">create</span>(...): <span class="tp">Candidate</span> {       <span class="cm">// Static factory &mdash; validates on creation</span>
+    <span class="kw">if</span> (!<span class="fn">isValidName</span>(name)) <span class="kw">throw new</span> <span class="tp">ValidationError</span>(...)
+    <span class="kw">return new</span> <span class="tp">Candidate</span>(...)
+  }
+
+  <span class="fn">shortlist</span>(reason: <span class="tp">string</span>): <span class="kw">void</span> {
+    <span class="kw">if</span> (!<span class="fn">isValidReason</span>(reason)) <span class="kw">throw new</span> <span class="tp">ValidationError</span>(...)
+    <span class="kw">if</span> (!<span class="kw">this</span>.<span class="fn">canTransitionTo</span>(<span class="str">'SHORTLISTED'</span>)) <span class="kw">throw new</span> <span class="tp">InvalidTransitionError</span>(...)
+    <span class="kw">this</span>._status = <span class="str">'SHORTLISTED'</span>
+    <span class="kw">this</span>._reason = reason
+    <span class="kw">this</span>._decisionDate = <span class="kw">new</span> <span class="tp">Date</span>()
+  }
+}
+  </pre>
+
+  <h3>Typed Error Hierarchy</h3>
+  <div class="diagram" style="flex-direction:column;align-items:center;">
+    <div class="dbox domain" style="min-width:200px;">DomainError<br><span style="font-size:11px;opacity:0.8">extends Error &mdash; sets this.name</span></div>
+    <div class="darrow" style="transform:rotate(90deg);">&rarr;</div>
+    <div style="display:flex;gap:12px;">
+      <div class="dbox" style="background:var(--yellow-dim);color:var(--yellow);border:1px solid var(--yellow);min-width:160px;">ValidationError<br><span style="font-size:11px;opacity:0.8">"Name cannot be empty"<br>"Reason must be &ge;10 chars"</span></div>
+      <div class="dbox" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red);min-width:160px;">InvalidTransitionError<br><span style="font-size:11px;opacity:0.8">"Cannot transition from<br>REJECTED to SHORTLISTED"</span></div>
+    </div>
+  </div>
+
+  <h3>TDD Approach</h3>
+  <div class="callout good">
+    <p><strong>Process:</strong> Write 10 failing tests describing what the model <em>should</em> do &rarr; implement the domain model &rarr; all tests green. The tests <em>were</em> the specification.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 4: SHARED VALIDATION ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="4">
+  <h2>Shared Validation Trade-off</h2>
+  <p class="subtitle">A deliberate anti-pattern &mdash; single source of truth > theoretical purity at this scale.</p>
+
+  <h3>The Solution</h3>
+  <pre>
+<span class="cm">// domain/validation/rules.ts &mdash; pure functions, zero framework imports</span>
+
+<span class="kw">export const</span> MIN_REASON_LENGTH = <span class="num">10</span>
+
+<span class="kw">export function</span> <span class="fn">isValidName</span>(name: <span class="tp">unknown</span>): <span class="tp">boolean</span> {
+  <span class="kw">return typeof</span> name === <span class="str">'string'</span> && name.<span class="fn">trim</span>().length > <span class="num">0</span>
+}
+
+<span class="kw">export function</span> <span class="fn">isValidReason</span>(reason: <span class="tp">unknown</span>): <span class="tp">boolean</span> {
+  <span class="kw">return typeof</span> reason === <span class="str">'string'</span> && reason.<span class="fn">trim</span>().length >= MIN_REASON_LENGTH
+}
+
+<span class="kw">export function</span> <span class="fn">canTransition</span>(status: <span class="tp">CandidateStatus</span>): <span class="tp">boolean</span> {
+  <span class="kw">return</span> status === <span class="str">'NEW'</span>
+}
+  </pre>
+
+  <h3>Shared vs Separated</h3>
+  <div class="diagram" style="flex-direction:column;gap:16px;">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;">
+      <div class="dbox domain" style="min-width:200px;">Shared<br><span style="font-size:11px;opacity:0.8">3 pure predicates + 1 constant<br>isValidName, isValidReason, canTransition</span></div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+      <div class="dbox infra" style="min-width:180px;">Backend Only<br><span style="font-size:11px;opacity:0.8">Error &rarr; HTTP status mapping<br>ValidationError &rarr; 400<br>InvalidTransitionError &rarr; 409</span></div>
+      <div class="dbox ui" style="min-width:180px;">Frontend Only<br><span style="font-size:11px;opacity:0.8">Error display logic<br>Toasts, banners, ErrorBoundary</span></div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Trade-off:</strong> Coupling is limited to "what constitutes valid data" &mdash; 3 predicates and 1 constant. Error handling stays separated. At this scale, single source of truth &gt; theoretical purity.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 5: FRONTEND ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="5">
+  <h2>Frontend Refactoring & UI</h2>
+  <p class="subtitle">Monolithic page &rarr; 10+ modular components with shadcn/ui design system.</p>
+
+  <h3>Component Hierarchy</h3>
+  <pre>
+LiveSession (page.tsx)            <span class="cm"># Orchestrator &mdash; ErrorBoundary + Suspense</span>
+  &boxur;&HorizontalLine; ErrorBoundary               <span class="cm"># Catches render errors</span>
+  &boxur;&HorizontalLine; Suspense                    <span class="cm"># Loading skeleton</span>
+  &boxur;&HorizontalLine; LiveSessionContent           <span class="cm"># State management hub</span>
+      &boxur;&HorizontalLine; CreateCandidateForm      <span class="cm"># Name input + inline validation</span>
+      &boxur;&HorizontalLine; CandidateBoard           <span class="cm"># DnD context + 3-column grid</span>
+      &boxvr;   &boxur;&HorizontalLine; KanbanColumn (x3)      <span class="cm"># Droppable zone with status header</span>
+      &boxvr;       &boxur;&HorizontalLine; CandidateCard (n)   <span class="cm"># Draggable card with grip handle</span>
+      &boxvr;           &boxur;&HorizontalLine; StatusBadge     <span class="cm"># Color-coded status pill</span>
+      &boxur;&HorizontalLine; CandidateSheet            <span class="cm"># Slide-out panel for decisions</span>
+      &boxvr;   &boxur;&HorizontalLine; UpdateStatusForm     <span class="cm"># Decision selector + reason textarea</span>
+      &boxur;&HorizontalLine; BusinessRules              <span class="cm"># Sticky footer with rule display</span>
+  </pre>
+
+  <h3>Design System</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">🎨</div>
+      <h5>shadcn/ui (New York style)</h5>
+      <p>Neutral base color, New York variant. Accessible primitives (Button, Card, Input, Sheet, Select, Badge, Skeleton, Textarea, Label) without custom CSS.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🖱️</div>
+      <h5>@dnd-kit</h5>
+      <p>Lightweight DnD library. PointerSensor (8px distance threshold) + KeyboardSensor. React 19 compatible. Much lighter than react-beautiful-dnd.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🌊</div>
+      <h5>Tailwind v4</h5>
+      <p>Utility-first CSS. No custom stylesheets needed. Theme tokens via CSS custom properties.</p>
+    </div>
+  </div>
+
+  <h3>Kanban Board Design</h3>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Color</th><th>Behavior</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge badge-blue">NEW</span></td><td>Blue border + header</td><td>Cards are draggable (grip icon visible)</td></tr>
+      <tr><td><span class="badge badge-green">SHORTLISTED</span></td><td>Green border + header</td><td>Cards are not draggable (terminal state)</td></tr>
+      <tr><td><span class="badge badge-red">REJECTED</span></td><td>Red border + header</td><td>Cards are not draggable (terminal state)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 6: STATE ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="6">
+  <h2>State Management & Optimistic UI</h2>
+  <p class="subtitle">TanStack Query for server state. React 19 useOptimistic for instant feedback.</p>
+
+  <h3>Before &rarr; After</h3>
+  <div class="two-col">
+    <div class="card" style="border-color: var(--red);">
+      <h5>Before: Raw fetch + useEffect</h5>
+      <p>Manual <code>fetch</code> calls, manual re-fetch after mutations. No caching, no loading/error states, no retry.</p>
+    </div>
+    <div class="card" style="border-color: var(--green);">
+      <h5>After: TanStack Query v5</h5>
+      <p>Automatic caching, loading/error states, retry, mutation + invalidation, type-safe query keys.</p>
+    </div>
+  </div>
+
+  <h3>Optimistic Update Flow</h3>
+  <pre>
+<span class="cm">// React 19's useOptimistic &mdash; updates UI before server responds</span>
+
+<span class="kw">type</span> <span class="tp">OptimisticAction</span> =
+  | { type: <span class="str">'add'</span>;    candidate: <span class="tp">CandidateDTO</span> }
+  | { type: <span class="str">'update'</span>; id: <span class="tp">string</span>; status: <span class="tp">CandidateStatus</span>; ... }
+
+<span class="kw">function</span> <span class="fn">candidatesReducer</span>(state, action) {
+  <span class="kw">switch</span> (action.type) {
+    <span class="kw">case</span> <span class="str">'add'</span>:    <span class="kw">return</span> [...state, action.candidate]
+    <span class="kw">case</span> <span class="str">'update'</span>: <span class="kw">return</span> state.<span class="fn">map</span>(c =>
+      c.id === action.id ? { ...c, status: action.status, ... } : c
+    )
+  }
+}
+  </pre>
+
+  <h3>Drag-and-Drop Decision Flow</h3>
+  <div class="callout info">
+    <p>
+      <strong>1.</strong> User drags NEW card to SHORTLISTED column<br>
+      <strong>2.</strong> Sheet opens with prefilled decision (SHORTLIST)<br>
+      <strong>3.</strong> User enters reason (min 10 chars, validated inline)<br>
+      <strong>4.</strong> On submit: <code>addOptimistic({ type: 'update', ... })</code> &mdash; card moves <em>immediately</em><br>
+      <strong>5.</strong> <code>submitDecision.mutateAsync(...)</code> fires API call<br>
+      <strong>6.</strong> <code>await queryClient.invalidateQueries(...)</code> reconciles with server truth<br>
+      <strong>7.</strong> If server fails: TanStack Query refetches &rarr; optimistic state reverts automatically
+    </p>
+  </div>
+
+  <h3>Custom Hooks Architecture</h3>
+  <table>
+    <thead>
+      <tr><th>Hook</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>useCandidates</code></td><td>TanStack Query + mutations, toast notifications</td></tr>
+      <tr><td><code>useOptimisticCandidates</code></td><td>React 19 <code>useOptimistic</code> with typed reducer</td></tr>
+      <tr><td><code>useCandidateSheet</code></td><td>Sheet open/close state, prefilled decision from drag</td></tr>
+      <tr><td><code>useFieldValidation</code></td><td>Generic validator + error message &rarr; <code>{ value, error, isValid, handleChange, reset }</code></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Key Bug Fix: useTransition for Optimistic UI</h4>
+  <div class="two-col">
+    <div class="card" style="border-color: var(--red);">
+      <h5>Before (broken)</h5>
+      <pre style="margin:8px 0 0;">
+<span class="cm">// Module-level &mdash; no component scope</span>
+<span class="kw">import</span> { <span class="fn">startTransition</span> } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="fn">startTransition</span>(<span class="kw">async</span> () => {
+  <span class="fn">addOptimistic</span>({ type: <span class="str">'update'</span>, ... })
+  <span class="kw">await</span> mutateAsync(...)
+  <span class="kw">await</span> invalidateQueries(...)
+})</pre>
+    </div>
+    <div class="card" style="border-color: var(--green);">
+      <h5>After (fixed)</h5>
+      <pre style="margin:8px 0 0;">
+<span class="cm">// Component-scoped &mdash; coordinates with useOptimistic</span>
+<span class="kw">const</span> [isPending, <span class="fn">startTransition</span>] = <span class="fn">useTransition</span>()
+
+<span class="fn">startTransition</span>(<span class="kw">async</span> () => {
+  <span class="fn">addOptimistic</span>({ type: <span class="str">'update'</span>, ... })
+  <span class="kw">await</span> mutateAsync(...)
+  <span class="kw">await</span> invalidateQueries(...)
+})</pre>
+    </div>
+  </div>
+  <div class="callout warn">
+    <p><strong>Why:</strong> The module-level <code>startTransition</code> can't coordinate with <code>useOptimistic</code>'s render scope &mdash; optimistic state never flushed instantly. The <code>useTransition()</code> hook provides a component-scoped version that does. Bonus: <code>isPending</code> flag for loading indicators.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 7: ACCESSIBILITY ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="7">
+  <h2>Accessibility</h2>
+  <p class="subtitle">WCAG 2.1 Level AA compliance. Drag-and-drop that works without a mouse.</p>
+
+  <div class="callout info">
+    <p><strong>Why this matters:</strong> Kanban boards are notoriously inaccessible &mdash; most rely entirely on mouse drag. By supporting keyboard DnD, screen reader announcements, and focus management, the board is usable by everyone including users with motor or visual impairments. Accessibility isn't a nice-to-have &mdash; it's a quality signal.</p>
+  </div>
+
+  <h3>Key Accessibility Decisions</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">🎯</div>
+      <h5>Drag Validation at Source</h5>
+      <p>Terminal-state cards have <code>disabled: true</code> on the draggable. Users can't start a drag that will fail &mdash; no confusing rejection at the target.</p>
+    </div>
+    <div class="card">
+      <div class="icon">⌨️</div>
+      <h5>KeyboardSensor</h5>
+      <p>@dnd-kit's <code>KeyboardSensor</code> enables full keyboard DnD navigation. Arrow keys move between columns, Enter/Space to pick up and drop.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📢</div>
+      <h5>ARIA Live Regions</h5>
+      <p><code>&lt;div aria-live="polite" aria-atomic="true" class="sr-only"&gt;</code> announces drag state changes to screen readers.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🏷️</div>
+      <h5>Semantic Markup</h5>
+      <p>Columns use <code>role="group"</code> + <code>aria-label</code>. Cards have <code>aria-roledescription="draggable candidate card"</code>. Loading state uses <code>aria-busy</code>.</p>
+    </div>
+  </div>
+
+  <h3>Screen Reader Announcements</h3>
+  <pre>
+<span class="cm">// Drag start</span>
+<span class="str">"Picked up Alice Johnson from NEW. Use arrow keys to move between columns."</span>
+
+<span class="cm">// Drag end &mdash; successful</span>
+<span class="str">"Moved Alice Johnson to SHORTLISTED."</span>
+
+<span class="cm">// Drag end &mdash; cancelled</span>
+<span class="str">"Dropped Alice Johnson. No change."</span>
+
+<span class="cm">// Drag end &mdash; same column</span>
+<span class="str">"Dropped Alice Johnson back in NEW."</span>
+  </pre>
+
+  <h3>Additional A11y Features</h3>
+  <ul>
+    <li><code>role="alert"</code> on error banners, <code>aria-busy</code> on loading skeletons</li>
+    <li>Focus returns to trigger element after sheet closes</li>
+    <li>Proper <code>&lt;Label&gt;</code> binding, <code>aria-hidden</code> on decorative icons</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 8: NEON DB ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="8">
+  <h2>Neon DB & Repository Pattern</h2>
+  <p class="subtitle">Repository interface as a port. Two adapters. Zero config for development.</p>
+
+  <h3>Port (Domain Layer)</h3>
+  <pre>
+<span class="kw">export interface</span> <span class="tp">CandidateRepository</span> {
+  <span class="fn">getAll</span>(): <span class="tp">Promise</span>&lt;<span class="tp">Candidate</span>[]&gt;
+  <span class="fn">getById</span>(id: <span class="tp">string</span>): <span class="tp">Promise</span>&lt;<span class="tp">Candidate</span> | <span class="tp">null</span>&gt;
+  <span class="fn">save</span>(candidate: <span class="tp">Candidate</span>): <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt;
+  <span class="fn">nextId</span>(): <span class="tp">Promise</span>&lt;<span class="tp">string</span>&gt;
+  <span class="fn">reset</span>(): <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt;
+}
+  </pre>
+
+  <div class="callout info">
+    <p><strong>Async everywhere:</strong> Even the in-memory adapter returns Promises. This means swapping adapters requires zero changes to calling code.</p>
+  </div>
+
+  <h3>Adapter Selection &mdash; Factory Pattern</h3>
+  <pre>
+<span class="kw">export function</span> <span class="fn">getRepository</span>(): <span class="tp">CandidateRepository</span> {
+  <span class="kw">if</span> (instance) <span class="kw">return</span> instance
+
+  <span class="kw">if</span> (process.env.DATABASE_URL) {
+    <span class="cm">// Lazy require() &mdash; avoids loading Neon deps when running in-memory</span>
+    <span class="kw">const</span> { NeonCandidateRepository } = <span class="fn">require</span>(<span class="str">'./neon-repository'</span>)
+    instance = <span class="kw">new</span> NeonCandidateRepository()
+  } <span class="kw">else</span> {
+    instance = <span class="kw">new</span> InMemoryCandidateRepository()
+  }
+  <span class="kw">return</span> instance
+}
+  </pre>
+
+  <h3>Drizzle ORM Schema</h3>
+  <pre>
+<span class="kw">export const</span> candidates = <span class="fn">pgTable</span>(<span class="str">'candidates'</span>, {
+  id:           <span class="fn">varchar</span>(<span class="str">'id'</span>, { length: <span class="num">20</span> }).<span class="fn">primaryKey</span>(),
+  name:         <span class="fn">varchar</span>(<span class="str">'name'</span>, { length: <span class="num">255</span> }).<span class="fn">notNull</span>(),
+  status:       <span class="fn">varchar</span>(<span class="str">'status'</span>, { length: <span class="num">20</span> }).<span class="fn">notNull</span>().<span class="fn">default</span>(<span class="str">'NEW'</span>),
+  reason:       <span class="fn">text</span>(<span class="str">'reason'</span>),
+  decisionDate: <span class="fn">timestamp</span>(<span class="str">'decision_date'</span>, { withTimezone: <span class="kw">true</span> }),
+  createdAt:    <span class="fn">timestamp</span>(<span class="str">'created_at'</span>, { withTimezone: <span class="kw">true</span> }).<span class="fn">notNull</span>().<span class="fn">defaultNow</span>(),
+})
+  </pre>
+
+  <h3>Upsert Pattern (Save)</h3>
+  <div class="callout good">
+    <p><strong>save()</strong> uses <code>INSERT ... ON CONFLICT DO UPDATE</code> (upsert). Same method for both create and update. No separate create/update logic needed in route handlers.</p>
+  </div>
+
+  <h3>Two Adapters Compared</h3>
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>InMemory</th><th>Neon</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Setup</td><td>Zero config</td><td>Set <code>DATABASE_URL</code> env var</td></tr>
+      <tr><td>Persistence</td><td>Resets on restart</td><td>Persistent Postgres</td></tr>
+      <tr><td>Speed</td><td>Sub-ms (Map lookups)</td><td>~50ms (HTTP to Neon edge)</td></tr>
+      <tr><td>ID generation</td><td>Atomic counter</td><td>SQL <code>max(cast(...))</code></td></tr>
+      <tr><td>Use case</td><td>Dev, testing, review</td><td>Production, demo</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 9: TESTING ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="9">
+  <h2>Testing Strategy</h2>
+  <p class="subtitle">Testing pyramid. TDD for domain. No mocking of the data layer.</p>
+
+  <h3>Testing Pyramid</h3>
+  <div class="pyramid">
+    <div class="pyramid-row" style="width:200px;background:var(--red-dim);color:var(--red);">E2E (Playwright)<br><span style="font-size:11px;opacity:0.8">8 scenarios</span></div>
+    <div class="pyramid-row" style="width:320px;background:var(--yellow-dim);color:var(--yellow);">Integration (API Routes + UI)<br><span style="font-size:11px;opacity:0.8">Route handler tests + component tests</span></div>
+    <div class="pyramid-row" style="width:450px;background:var(--green-dim);color:var(--green);">Unit Tests (Domain + Validation + Repository)<br><span style="font-size:11px;opacity:0.8">Highest value &mdash; test business rules in isolation</span></div>
+  </div>
+
+  <h3>Test Organization by Layer</h3>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>What's Tested</th><th>Runner</th><th>Mocking</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">Domain</span></td><td>Candidate state transitions, validation rules, error hierarchy</td><td>Vitest</td><td>None</td></tr>
+      <tr><td><span class="badge badge-green">Validation</span></td><td>Shared predicates (isValidName, isValidReason, canTransition)</td><td>Vitest</td><td>None</td></tr>
+      <tr><td><span class="badge badge-blue">Infrastructure</span></td><td>Repository adapter contracts (InMemory + Neon)</td><td>Vitest</td><td>None</td></tr>
+      <tr><td><span class="badge badge-yellow">API Routes</span></td><td>HTTP status codes, request/response shapes, error mapping</td><td>Vitest</td><td>InMemory repo</td></tr>
+      <tr><td><span class="badge badge-purple">Components</span></td><td>UI rendering, user interactions</td><td>Vitest + RTL</td><td>Data props</td></tr>
+      <tr><td><span class="badge badge-red">E2E</span></td><td>Full user workflows against running app</td><td>Playwright</td><td>None</td></tr>
+    </tbody>
+  </table>
+
+  <h3>TDD: Failing Tests First</h3>
+  <pre>
+<span class="cm">// PR #2: These tests documented exactly what was broken</span>
+
+<span class="fn">it</span>(<span class="str">'should not allow shortlisting a rejected candidate'</span>, () => {
+  <span class="kw">const</span> candidate = Candidate.<span class="fn">create</span>(<span class="str">'c_1'</span>, <span class="str">'Alice'</span>, <span class="str">'REJECTED'</span>, <span class="str">'Not a fit for this role'</span>)
+  <span class="fn">expect</span>(() => candidate.<span class="fn">shortlist</span>(<span class="str">'Changed my mind about this'</span>))
+    .<span class="fn">toThrow</span>(<span class="tp">InvalidTransitionError</span>)
+})
+
+<span class="cm">// PR #2: 10 tests written. 10 tests failing. The specification is the test suite.</span>
+<span class="cm">// PR #3: Domain model implemented. 10 tests green.</span>
+  </pre>
+
+  <h3>E2E Scenarios (Playwright)</h3>
+  <ul>
+    <li>Create candidate with valid name &rarr; appears in NEW column</li>
+    <li>Create candidate with empty name &rarr; shows validation error</li>
+    <li>Click NEW card &rarr; sheet opens, submit shortlist with reason</li>
+    <li>Click NEW card &rarr; sheet opens, submit reject with reason</li>
+    <li>Drag card to SHORTLISTED &rarr; sheet prefills, submit moves card</li>
+    <li>Drag card to REJECTED &rarr; sheet prefills, submit moves card</li>
+    <li>Click SHORTLISTED card &rarr; sheet shows read-only details</li>
+    <li>Verify board state is consistent after all operations</li>
+  </ul>
+
+  <div class="callout info">
+    <p><strong>No data layer mocking</strong> in integration tests. The in-memory repository is fast enough to use directly. This catches real integration bugs that mocks would hide (e.g., the Neon <code>nextId</code> lexicographic ordering bug).</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 10: CI/CD ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="10">
+  <h2>CI/CD & Review Workflow</h2>
+  <p class="subtitle">Every PR runs the full quality suite. Nothing merges without all checks green.</p>
+
+  <h3>GitHub Actions Pipeline</h3>
+  <pre>
+<span class="cm"># .github/workflows/test.yml</span>
+<span class="kw">name:</span> CI
+<span class="kw">on:</span>
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+
+<span class="kw">jobs:</span>
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - <span class="fn">actions/checkout@v4</span>
+      - <span class="fn">actions/setup-node@v4</span> (node 20 + npm cache)
+      - npm ci + Linux native bindings
+      - <span class="str">Typecheck</span>       <span class="cm"># tsc --noEmit</span>
+      - <span class="str">Lint</span>            <span class="cm"># eslint .</span>
+      - <span class="str">Format check</span>    <span class="cm"># prettier --check</span>
+      - <span class="str">Test</span>            <span class="cm"># vitest run</span>
+      - <span class="str">Install Playwright Chromium</span>
+      - <span class="str">E2E tests</span>       <span class="cm"># playwright test</span>
+  </pre>
+
+  <h3>Quality Gates (6 Checks)</h3>
+  <div class="card-grid">
+    <div class="card"><h5>1. Typecheck</h5><p><code>tsc --noEmit</code> with strict mode. Catches type errors before anything else runs.</p></div>
+    <div class="card"><h5>2. ESLint</h5><p>Flat config with TypeScript-ESLint + Next.js rules. Zero warnings policy.</p></div>
+    <div class="card"><h5>3. Prettier</h5><p><code>prettier --check</code> ensures consistent formatting. No debates in code review.</p></div>
+    <div class="card"><h5>4. Unit + Integration</h5><p>Vitest runs all tests. Domain logic + API routes + repository contracts.</p></div>
+    <div class="card"><h5>5. E2E</h5><p>Playwright against a production build. Full user workflows in headless Chromium.</p></div>
+    <div class="card"><h5>6. CodeRabbit</h5><p>AI code reviewer on every PR. Catches patterns, suggests improvements, enforces conventions.</p></div>
+  </div>
+
+  <h3>Pre-commit Hooks (Local)</h3>
+  <div class="callout good">
+    <p>
+      <strong>Husky + lint-staged:</strong> On every commit, lint-staged runs Prettier (format) and ESLint (lint) on only staged files. Commitlint enforces conventional commit format. Fast local feedback before CI.
+    </p>
+  </div>
+
+  <h3>Workflow</h3>
+  <div class="diagram">
+    <div class="dbox app" style="min-width:100px;">Local Dev</div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox" style="background:var(--yellow-dim);color:var(--yellow);border:1px solid var(--yellow)">Pre-commit<br><span style="font-size:11px">Husky + commitlint</span></div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox domain" style="min-width:100px;">Push PR</div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox infra">CI Pipeline<br><span style="font-size:11px">6 checks</span></div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox ui">CodeRabbit<br><span style="font-size:11px">AI Review</span></div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox domain" style="min-width:80px;">Merge</div>
+    <div class="darrow">&rarr;</div>
+    <div class="dbox" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)">Vercel<br><span style="font-size:11px">Deploy</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ TAB 11: LEARNINGS ═══════════════════════════════════════════════ -->
+<section class="panel" data-panel="11">
+  <h2>Learnings & Reflections</h2>
+  <p class="subtitle">What went well, what I'd do differently, and takeaways.</p>
+
+  <h3>What Went Well</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">&#10004;&#65039;</div>
+      <h5>Tooling First</h5>
+      <p>Investing in Prettier + ESLint + strict TS + Husky upfront meant every subsequent PR was automatically consistent. Zero formatting debates.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#10004;&#65039;</div>
+      <h5>TDD as Specification</h5>
+      <p>Writing failing tests first turned vague requirements into exact, executable specs. When tests go green, you know the feature works &mdash; no manual verification needed.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#10004;&#65039;</div>
+      <h5>Incremental PRs</h5>
+      <p>7 focused PRs instead of one big bang. Each PR was reviewable, testable, and deployable. Smaller blast radius for each change.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#10004;&#65039;</div>
+      <h5>Domain Model Encapsulation</h5>
+      <p>Private constructor + static factory + transition methods = impossible to create invalid state. The compiler catches business rule violations.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#10004;&#65039;</div>
+      <h5>Repository Pattern Payoff</h5>
+      <p>Adding Neon adapter required zero changes to domain or route code. The interface abstraction paid for itself immediately.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#10004;&#65039;</div>
+      <h5>Optimistic UI + Error Recovery</h5>
+      <p>React 19 <code>useOptimistic</code> gave instant DnD feedback. The <code>useTransition</code> hook provides a component-scoped <code>startTransition</code> that coordinates with <code>useOptimistic</code>. Combined with awaited <code>invalidateQueries</code>, the UI stays consistent even on server failure.</p>
+    </div>
+  </div>
+
+  <h3>What Could Be Improved</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">&#128736;&#65039;</div>
+      <h5>c_id vs UUID</h5>
+      <p>Kept the prototype's <code>c_1</code>, <code>c_2</code> ID format. In production, UUIDs would be more appropriate for distributed systems and avoid the <code>nextId()</code> race condition.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#128736;&#65039;</div>
+      <h5>Migration System</h5>
+      <p>Neon schema was created via direct SQL. A proper migration system (Drizzle Kit) would make schema evolution trackable and reversible.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#128736;&#65039;</div>
+      <h5>API Validation Layer</h5>
+      <p>Route handlers do manual type checking. Zod schemas would give automatic parsing, type inference, and better error messages.</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#128736;&#65039;</div>
+      <h5>Comprehensive E2E</h5>
+      <p>8 scenarios cover the happy paths. Edge cases (concurrent edits, network failures, slow connections) need additional E2E coverage for production readiness.</p>
+    </div>
+  </div>
+
+  <h3>Key Takeaways</h3>
+  <div class="callout good">
+    <p>
+      <strong>1.</strong> Standards before code &mdash; the first commit shapes everything after it.<br>
+      <strong>2.</strong> Failing tests are the best specification language.<br>
+      <strong>3.</strong> Hexagonal doesn't mean heavy &mdash; adapt the pattern to the project scale.<br>
+      <strong>4.</strong> Shared validation is a pragmatic trade-off, not a mistake, when acknowledged explicitly.<br>
+      <strong>5.</strong> Optimistic UI requires careful state management &mdash; <code>useTransition</code> (not the module-level <code>startTransition</code>) + awaited invalidation prevents flicker.<br>
+      <strong>6.</strong> Incremental delivery builds confidence &mdash; each PR is a checkpoint that works.
+    </p>
+  </div>
+
+  <h3>Tools Used for Change Management</h3>
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>OpenSpec</td><td>Design documents for each major change (8 specs written)</td></tr>
+      <tr><td>dev-log.md</td><td>Raw decision log &mdash; captures reasoning at the time of decision</td></tr>
+      <tr><td>CodeRabbit</td><td>AI reviewer on every PR &mdash; catches patterns humans miss</td></tr>
+      <tr><td>Conventional Commits</td><td>Machine-readable history for automated changelogs</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<script>
+  const tabs = document.querySelectorAll('.tab-item');
+  const panels = document.querySelectorAll('.panel');
+  const mainContent = document.getElementById('mainContent');
+
+  function activate(index) {
+    tabs.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    tabs[index].classList.add('active');
+    panels[index].classList.add('active');
+    mainContent.scrollTop = 0;
+    tabs[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => activate(i));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const current = [...tabs].findIndex(t => t.classList.contains('active'));
+    if (e.key === 'ArrowDown' || e.key === 'j') {
+      e.preventDefault();
+      activate(Math.min(current + 1, tabs.length - 1));
+    } else if (e.key === 'ArrowUp' || e.key === 'k') {
+      e.preventDefault();
+      activate(Math.max(current - 1, 0));
+    }
+  });
+</script>
+
+</body>
+</html>
