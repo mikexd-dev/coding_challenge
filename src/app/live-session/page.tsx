@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, startTransition, Suspense } from 'react'
+import { useRef, useTransition, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useQueryClient } from '@tanstack/react-query'
 import type { CandidateDTO, DecisionAction } from '@/domain/types/candidate'
@@ -41,6 +41,7 @@ function LiveSessionContent() {
   const { candidates, isLoading, error, createCandidate, submitDecision } = useCandidates()
   const [optimisticCandidates, addOptimistic] = useOptimisticCandidates(candidates)
   const { sheetState, openFromClick, openFromDrop, close } = useCandidateSheet()
+  const [_isPending, startTransition] = useTransition()
   const sheetTriggerRef = useRef<HTMLElement | null>(null)
 
   const handleCardClick = (id: string) => {
